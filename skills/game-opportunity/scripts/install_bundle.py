@@ -170,6 +170,45 @@ def _verify_source_version(root: pathlib.Path, tag: str) -> None:
         raise BundleInstallError("Game-exp release version/identity mismatch")
 
 
+OFFICIAL_FAILURE_CATEGORIES = (
+    "UV_NOT_FOUND", "WINDOWS_PATH", "WINDOWS_FILE_LOCK", "WINDOWS_ACCESS",
+    "COMPANION_SYNC", "PYTHON_MODULE", "RELEASE_SOURCE", "CONFIG",
+    "NETWORK", "FILESYSTEM", "INSTALLER_UNKNOWN",
+)
+
+
+def official_error_category(stdout: str) -> str:
+    """Categorize child-reported failures without exporting private error text."""
+    try:
+        parsed = json.loads(stdout)
+    except (TypeError, ValueError):
+        return "INSTALLER_UNKNOWN"
+    if not isinstance(parsed, dict):
+        return "INSTALLER_UNKNOWN"
+    message = str(parsed.get("error", "")).lower()
+    if "uv is required" in message or ("uv" in message and "not found in path" in message):
+        return "UV_NOT_FOUND"
+    if "winerror 32" in message or "being used by another process" in message:
+        return "WINDOWS_FILE_LOCK"
+    if "winerror 5" in message or "access is denied" in message:
+        return "WINDOWS_ACCESS"
+    if "winerror" in message or ("drive" in message and "path" in message):
+        return "WINDOWS_PATH"
+    if "companion" in message or "h5-game-prototype" in message or "godot-prototype" in message:
+        return "COMPANION_SYNC"
+    if "modulenotfounderror" in message or "no module named" in message:
+        return "PYTHON_MODULE"
+    if "release" in message or ("source" in message and "archive" in message):
+        return "RELEASE_SOURCE"
+    if "toml" in message or "config" in message:
+        return "CONFIG"
+    if "urlerror" in message or "http error" in message or "github" in message:
+        return "NETWORK"
+    if "filenotfound" in message or "permission" in message or "directory" in message or "file" in message:
+        return "FILESYSTEM"
+    return "INSTALLER_UNKNOWN"
+
+
 def run_official_installer(root: pathlib.Path, home: pathlib.Path, harness: str, tag: str) -> dict:
     # The published official script is the only writer of game-exp runtime/MCP/companion Skills.
     args = [sys.executable, str(root / "tools/game-exp/install_harnesses.py"),
@@ -180,8 +219,9 @@ def run_official_installer(root: pathlib.Path, home: pathlib.Path, harness: str,
     except (OSError, subprocess.TimeoutExpired) as exc:
         raise BundleInstallError(f"game-exp official installer did not finish: {exc}") from exc
     if proc.returncode != 0:
-        # No raw stdout/stderr: avoid accidentally showing local config values or tokens.
-        raise BundleInstallError(f"Official game-exp installer failed (exit {proc.returncode}); see game-exp installer locally")
+        # A fixed code only: never return the child error, path, or token.
+        category = official_error_category(proc.stdout)
+        raise BundleInstallError("OFFICIAL_GAME_EXP_INSTALLER_" + category)
     try:
         result = json.loads(proc.stdout)
     except ValueError as exc:
@@ -371,8 +411,15 @@ def bundle_install(home: pathlib.Path, harness: str, release: str | None = None)
                 snapshot.restore()
             except Exception as rollback_exc:
                 raise BundleInstallError(f"ROLLBACK_INCOMPLETE_{phase}: bundle failed ({type(exc).__name__}); restore failed ({type(rollback_exc).__name__})") from rollback_exc
-            # Fixed phase and type only, no raw exception message or local paths.
-            raise BundleInstallError(f"ROLLED_BACK_{phase}: bundle failed ({type(exc).__name__}); previous managed paths restored") from exc
+            # Exact stage and allowlisted child-failure category; never embed
+            # child stdout/stderr or the raw exception text.
+            suffix = ""
+            if phase == "OFFICIAL_INSTALLER" and isinstance(exc, BundleInstallError):
+                for category in OFFICIAL_FAILURE_CATEGORIES:
+                    if ("OFFICIAL_GAME_EXP_INSTALLER_" + category) in str(exc):
+                        suffix = "_" + category
+                        break
+            raise BundleInstallError(f"ROLLED_BACK_{phase}{suffix}: bundle failed ({type(exc).__name__}); previous managed paths restored") from exc
         finally:
             snapshot.close()
     return {"status": "PASS", "bundle": "game-opportunity + game-exp + official H5/Godot companions",
