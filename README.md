@@ -96,3 +96,15 @@ Use `codex` or `qoder` as appropriate. This runs the **official published-stable
 
 Use `scripts/handoff_bundle.py` for ordinary non-authoritative research context when a real playable is requested. game-exp's real current project/Manifest/Bind controls all official experiments. After verified observation, `scripts/link_result.py` records operator-reported provenance in the ordinary opportunity card; it does not assert a Review outcome or mutate the protected Ledger.
 
+
+## v0.4.0: predeclared player-behavior validation (local only)
+
+This release retains the v0.3 main-Skill, official game-exp bundle installer, and H5/Godot handoff. It adds `skills/game-opportunity/scripts/validation_cycle.py` to connect actual player evidence to a **pre-test question** without inventing a second trusted experiment lifecycle.
+
+First complete an opportunity card. Before a real test, use `validation_cycle.py plan` to freeze a unique-player metric, its actual numerator/denominator definition, population, segment, time window, recruitment limitations and independently justified continue/stop signal bounds. The tool creates a local non-overwritable JSON plan and prints its SHA-256. Preserve that hash in an authorized independent, timestamped private record **before** running the test if pre-registration timing matters; local hash equality alone is not proof of prior timing.
+
+After testing, export **one** anonymized aggregated CSV or JSON row and run `validation_cycle.py assess --plan ... --input ... --expected-plan-sha256 ...`. Mismatched source snapshots, population/segment/window, metric, unit, or unknown/raw player-level columns are rejected. An observed percentage is not a market forecast, population estimate, causal effect or product verdict. No pretest digest means a descriptive-only result; an insufficient denominator is inconclusive. All outcomes remain ordinary operator-reported research, never game-exp Review, promotion, selection or rejection.
+
+Use `python skills/game-opportunity/scripts/validation_cycle.py plan --help` and the corresponding `assess --help` for CLI flags. See [validation-cycle.md](skills/game-opportunity/references/validation-cycle.md) and the **fully synthetic** Chinese-CSV example [synthetic-behavior-aggregate.csv](examples/synthetic-behavior-aggregate.csv). All real plans/aggregates default to ignored `local-evidence/`; no scraper, login, remote upload, human recruitment or spending occurs. Use `link_result.py` to append sourced findings to a card after actual observation. No prerequisite market research is imposed on direct development requests.
+
+Code-level checks use synthetic data. Cross-Harness behavioral routing, live platform data access and actual human player outcomes remain separate acceptance work.

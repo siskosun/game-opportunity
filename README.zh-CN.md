@@ -120,3 +120,29 @@ python skills/game-opportunity/scripts/adapters/steam_reviews.py --appid 123456 
 继续使用原来的机会卡三项必填决策信息和 `opportunity_card.py`，不会另造 PROBE/Manifest。真实玩家招募、投放、测试发布均由获得授权的人执行。所有私人评论原文与公司数据都禁止提交到本公开仓库。
 
 > 发布状态：本次升级验证由单元测试及 CI 覆盖；跨 Cursor、Codex、ChatGPT 的实际路由评测和 3–5 个真实选题的 P0-C 仍需执行。未完成的评测不能视为 PASS。
+
+## v0.4.0：玩家验证闭环（离线、本地、非权威）
+
+新版主要解决“**最初预期什么，真实玩家实际做了什么**”这一断点。保留 v0.3.0 的主技能配套安装和 game-exp/H5/Godot 交接能力，不强制每个创意都开发原型，不要求游戏适合玩吧、微信小游戏或任何固定渠道。
+
+新增 `scripts/validation_cycle.py`，仅使用 Python 标准库，支持两步：
+
+1. `plan`：在测试前从**已填写完整**的机会卡创建独立 JSON 验证计划，明确唯一玩家行为指标、分子/分母、人群、时间窗、样本来源、最小分母和由用户解释的继续/停止信号。输出本地文件及 SHA-256。应当在测试发生**之前**把 SHA 存入有独立时间记录的授权私有位置；本地 SHA 自身无法证明创建时间。
+2. `assess`：测试完成后，读取**单条汇总记录**的 UTF-8 CSV/JSON，逐项校验指标、统计单位、人群、时间、来源及分母，并仅提供描述性“达到预设信号/证据不足”判断。严格拒绝多来源、多日期或多分组记录的自动相加或平均，也不接收评论原文、玩家 ID、手机号等多余列。
+
+中文 CSV 字段示例见 [`examples/synthetic-behavior-aggregate.csv`](examples/synthetic-behavior-aggregate.csv)。该文件**完全虚构**，仅用于运行功能演示；不能作为真实玩家验证证据。详细操作、参数与信号定义见 [`references/validation-cycle.md`](skills/game-opportunity/references/validation-cycle.md)。
+
+在仓库根目录查看参数：
+
+```powershell
+python skills/game-opportunity/scripts/validation_cycle.py plan --help
+python skills/game-opportunity/scripts/validation_cycle.py assess --help
+```
+
+示例验证数据兼容中英文字段，但只接受明确的 **unique_players（独立有效玩家）** 统计单位。若平台只提供浏览量、曝光次数或会话数，不能冒充独立玩家。`qualified_interest` 只代表兴趣信号，不代表付费或留存；叙事买断游戏可以用 `finite_game_completion`，而不是强制套用 D7。
+
+输出默认放在 `.gitignore` 排除的 `local-evidence/`，不会自动上传 GitHub、接触真实用户或修改游戏仓库。只有取得实际证据后，才可用现有的 `link_result.py` 将汇总来源和局限追加至机会卡。
+
+**game-exp 仍是唯一可信实验控制层。** 无论本地观察达到继续或停止信号，都不能自动成为 game-exp 的 Candidate Review PASS/FAIL、PROMISING、SELECTED 或 REJECTED。H5/Godot 的机器测试也不能证明真实玩家喜欢该玩法。
+
+本版自动测试使用合成数据；真实玩家试运行、正式安装的跨 Harness 行为路由，以及生产环境 game-exp 实验端到端测试，仍须独立验证。
