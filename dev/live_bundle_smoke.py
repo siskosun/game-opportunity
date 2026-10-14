@@ -74,6 +74,14 @@ def run(harness: str = "codex", *, confirmed: bool = False) -> dict:
                 for phase in ("OFFICIAL_INSTALLER", "MAIN_SKILL_COPY", "POSTINSTALL_VERIFY"):
                     if "ROLLED_BACK_" + phase in error:
                         stage += "_" + phase
+                        if phase == "OFFICIAL_INSTALLER":
+                            for code in ("UV_NOT_FOUND", "WINDOWS_PATH", "WINDOWS_FILE_LOCK",
+                                         "WINDOWS_ACCESS", "COMPANION_SYNC", "PYTHON_MODULE",
+                                         "RELEASE_SOURCE", "CONFIG", "NETWORK", "FILESYSTEM",
+                                         "INSTALLER_UNKNOWN"):
+                                if "ROLLED_BACK_OFFICIAL_INSTALLER_" + code in error:
+                                    stage += "_" + code
+                                    break
                         break
             elif "COMPATIBILITY_REVIEW_REQUIRED" in error:
                 stage = "PREFLIGHT_REJECTED"
