@@ -211,8 +211,14 @@ def official_error_category(stdout: str, stderr: str = "") -> str:
             # return its message, traceback text, paths or process environment.
             for line in reversed(stderr.splitlines()):
                 match = re.match(r"^(?:[a-zA-Z_][a-zA-Z0-9_]*\.)*([a-zA-Z_][a-zA-Z0-9_]{1,50})(?::|$)", line.strip())
-                if match and match.group(1) in SAFE_TRACEBACK_CLASSES:
-                    return "PYTHON_TRACEBACK_" + match.group(1).upper()
+                if match:
+                    class_name = match.group(1)
+                    if class_name in SAFE_TRACEBACK_CLASSES:
+                        return "PYTHON_TRACEBACK_" + class_name.upper()
+                    # Exception *class only*, never its message/traceback or
+                    # a user path. Restrict to PascalCase ASCII identifiers.
+                    if class_name[0].isupper() and class_name.isascii() and len(class_name) <= 48:
+                        return "PYTHON_TRACEBACK_CLASS_" + class_name.upper()
             return "PYTHON_TRACEBACK_OTHER"
         if "usage:" in detail or "unrecognized arguments:" in detail:
             return "ARGPARSE_REJECTED"
@@ -461,6 +467,10 @@ def bundle_install(home: pathlib.Path, harness: str, release: str | None = None)
                     if ("OFFICIAL_GAME_EXP_INSTALLER_" + category) in str(exc):
                         suffix = "_" + category
                         break
+                if not suffix:
+                    match = re.search(r"OFFICIAL_GAME_EXP_INSTALLER_(PYTHON_TRACEBACK_CLASS_[A-Z0-9_]{2,48})", str(exc))
+                    if match:
+                        suffix = "_" + match.group(1)
             raise BundleInstallError(f"ROLLED_BACK_{phase}{suffix}: bundle failed ({type(exc).__name__}); previous managed paths restored") from exc
         finally:
             snapshot.close()
