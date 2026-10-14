@@ -20,6 +20,31 @@ SCRIPT_ROOT = ROOT / "skills/game-opportunity/scripts"
 sys.path.insert(0, str(SCRIPT_ROOT))
 import check_bundle  # noqa: E402
 
+VALID_STATES = frozenset({"CURRENT", "INCOMPATIBLE", "UNVERIFIED", "NOT_INSTALLED", "UNKNOWN"})
+VALID_COMPONENTS = frozenset({"game-opportunity", "game-exp", "h5-game-prototype-agent", "godot-prototype-studio"})
+
+
+class SmokeFailure(RuntimeError):
+    """Path-free diagnostic; no subprocess stdout/stderr or exception strings."""
+
+    def __init__(self, reason: str, components: dict[str, str] | None = None):
+        super().__init__(reason)
+        self.reason = reason
+        self.components = components or {}
+
+
+def safe_component_states(report: dict) -> dict[str, str]:
+    states = {}
+    for host in report.get("harnesses", []):
+        rows = host.get("components", {}) if isinstance(host, dict) else {}
+        if not isinstance(rows, dict):
+            continue
+        for name, info in rows.items():
+            if name in VALID_COMPONENTS:
+                state = info.get("state") if isinstance(info, dict) else None
+                states[name] = state if state in VALID_STATES else "UNKNOWN"
+    return states
+
 
 def run(harness: str = "codex", *, confirmed: bool = False) -> dict:
     if harness not in check_bundle.SUPPORTED_HARNESSES:
@@ -34,23 +59,42 @@ def run(harness: str = "codex", *, confirmed: bool = False) -> dict:
         command = [sys.executable, str(SCRIPT_ROOT / "install_bundle.py"), "--harness", harness, "--home", str(home), "--json"]
         proc = subprocess.run(command, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=900, check=False)
         if proc.returncode != 0:
-            # Never echo installer output which might contain an environment path/token.
-            raise RuntimeError(f"Ephemeral bundle installer failed with exit code {proc.returncode}; inspect redacted CI failure locally")
+            # Never echo raw stdout or stderr: official installer may include secrets.
+            # Only emit enumerated phases and types, not arbitrary error strings.
+            try:
+                failure = json.loads(proc.stdout)
+            except ValueError:
+                failure = {}
+            error = str(failure.get("error", "")) if isinstance(failure, dict) else ""
+            if "ROLLBACK_INCOMPLETE" in error:
+                stage = "ROLLBACK_INCOMPLETE"
+            elif "ROLLED_BACK" in error:
+                stage = "ROLLED_BACK"
+            elif "COMPATIBILITY_REVIEW_REQUIRED" in error:
+                stage = "PREFLIGHT_REJECTED"
+            else:
+                stage = "INSTALLER_FAILED"
+            raise SmokeFailure("INSTALL_" + stage)
         try:
             install = json.loads(proc.stdout)
         except ValueError as exc:
-            raise RuntimeError("Ephemeral install returned invalid JSON") from exc
+            raise SmokeFailure("INSTALL_RESULT_NOT_JSON") from exc
         if install.get("status") != "PASS" or install.get("result") != "INSTALLED_VERIFIED_PIN":
-            raise RuntimeError("Ephemeral install did not verify pinned source")
-        checked = check_bundle.evaluate(home, [harness], online=True)
-        if checked["status"] != "CURRENT":
-            raise RuntimeError("Ephemeral installed bundle not current against pinned releases")
+            raise SmokeFailure("INSTALL_RESULT_NOT_VERIFIED")
+        try:
+            checked = check_bundle.evaluate(home, [harness], online=True)
+        except (OSError, ValueError, KeyError, TypeError) as exc:
+            raise SmokeFailure("POSTCHECK_UNAVAILABLE") from exc
+        if checked.get("status") != "CURRENT":
+            status = checked.get("status")
+            status = status if status in VALID_STATES else "UNKNOWN"
+            raise SmokeFailure("POSTCHECK_NOT_CURRENT_" + status, safe_component_states(checked))
         lock = check_bundle.load_lock()
         installed = checked["harnesses"][0]["components"]
         if set(installed) != set(lock["components"]) | {"game-opportunity"}:
-            raise RuntimeError("Ephemeral components are incomplete")
+            raise SmokeFailure("POSTCHECK_COMPONENTS_MISSING", safe_component_states(checked))
         if any(component["state"] != "CURRENT" for component in installed.values()):
-            raise RuntimeError("Ephemeral source-integrity mismatch")
+            raise SmokeFailure("POSTCHECK_INTEGRITY_MISMATCH", safe_component_states(checked))
         return {
             "status": "PASS",
             "harness": harness,
@@ -71,8 +115,14 @@ def main(argv: list[str] | None = None) -> int:
     args = p.parse_args(argv)
     try:
         report = run(args.harness, confirmed=args.confirm_ephemeral_network_install)
+    except SmokeFailure as exc:
+        payload = {"status": "FAIL", "reason": exc.reason}
+        if exc.components:
+            payload["component_states"] = exc.components
+        print(json.dumps(payload, sort_keys=True))
+        return 2
     except (OSError, ValueError, RuntimeError, subprocess.SubprocessError):
-        print(json.dumps({"status": "FAIL", "reason": "EPHEMERAL_INSTALL_UNVERIFIED_OR_INCOMPLETE"}))
+        print(json.dumps({"status": "FAIL", "reason": "EPHEMERAL_INSTALL_UNEXPECTED"}))
         return 2
     print(json.dumps(report, ensure_ascii=False, indent=2))
     return 0

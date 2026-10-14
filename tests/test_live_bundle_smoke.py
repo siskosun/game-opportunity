@@ -49,6 +49,35 @@ class LiveBundleSmokeTests(unittest.TestCase):
         self.assertIn("dev/live_bundle_smoke.py", y)
         self.assertNotIn("--harness all", y)
 
+    def test_failed_install_never_leaks_child_stderr_or_json_message(self):
+        proc = mock.Mock(returncode=1, stdout=json.dumps({"status": "FAIL", "error": "TOKEN_DO_NOT_LEAK"}), stderr="SECRET")
+        with mock.patch.object(smoke.subprocess, "run", return_value=proc):
+            with self.assertRaises(smoke.SmokeFailure) as ctx:
+                smoke.run("codex", confirmed=True)
+        self.assertEqual(ctx.exception.reason, "INSTALL_INSTALLER_FAILED")
+        self.assertNotIn("TOKEN_DO_NOT_LEAK", str(ctx.exception))
+
+    def test_postcheck_reports_only_allowlisted_components_and_states(self):
+        proc = mock.Mock(returncode=0, stdout=json.dumps({"status": "PASS", "result": "INSTALLED_VERIFIED_PIN"}), stderr="SECRET")
+        status = {"status": "INCOMPATIBLE", "harnesses": [{"components": {
+            "game-opportunity": {"state": "CURRENT"},
+            "game-exp": {"state": "INCOMPATIBLE", "reason": "SECRET"},
+            "arbitrary-private": {"state": "NOT_INSTALLED"},
+        }}]}
+        with mock.patch.object(smoke.subprocess, "run", return_value=proc), mock.patch.object(smoke.check_bundle, "evaluate", return_value=status):
+            with self.assertRaises(smoke.SmokeFailure) as ctx:
+                smoke.run("codex", confirmed=True)
+        self.assertEqual(ctx.exception.reason, "POSTCHECK_NOT_CURRENT_INCOMPATIBLE")
+        self.assertEqual(ctx.exception.components, {"game-opportunity": "CURRENT", "game-exp": "INCOMPATIBLE"})
+        self.assertNotIn("SECRET", str(ctx.exception))
+
+    def test_invalid_success_envelope_yields_fixed_stage(self):
+        proc = mock.Mock(returncode=0, stdout="NOT_JSON", stderr="SECRET")
+        with mock.patch.object(smoke.subprocess, "run", return_value=proc):
+            with self.assertRaises(smoke.SmokeFailure) as ctx:
+                smoke.run("codex", confirmed=True)
+        self.assertEqual(ctx.exception.reason, "INSTALL_RESULT_NOT_JSON")
+
     def test_published_release_requires_ephemeral_compatibility_smoke(self):
         y = (ROOT / ".github/workflows/publish-stable-release.yml").read_text(encoding="utf-8")
         self.assertIn("--confirm-ephemeral-network-install", y)
