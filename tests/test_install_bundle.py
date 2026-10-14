@@ -129,6 +129,28 @@ class BundleInstallerTests(unittest.TestCase):
                 for host in set(installer.SUPPORTED_HARNESSES) - set(selected):
                     self.assertFalse((home / f".{host}").exists())
 
+    def test_official_installer_child_forces_utf8_when_stdout_is_captured(self):
+        with tempfile.TemporaryDirectory() as t:
+            home = pathlib.Path(t) / "home"
+            home.mkdir()
+            root = pathlib.Path(t) / "upstream"
+            p = root / "tools/game-exp/install_harnesses.py"
+            p.parent.mkdir(parents=True)
+            p.write_text("# isolated CLI stub", encoding="utf-8")
+            proc = mock.Mock(
+                returncode=0,
+                stdout=json.dumps({"status": "PASS", "source_channel": "stable",
+                                   "source_ref": "v1.5.3", "next_zh": "已完成安装"}, ensure_ascii=False),
+                stderr="",
+            )
+            with mock.patch.object(installer.subprocess, "run", return_value=proc) as run:
+                result = installer.run_official_installer(root, home, "codex", "v1.5.3")
+            self.assertEqual(result["status"], "PASS")
+            env = run.call_args.kwargs["env"]
+            self.assertEqual(env["PYTHONIOENCODING"], "utf-8")
+            self.assertEqual(env["PYTHONUTF8"], "1")
+            self.assertEqual(run.call_args.kwargs["encoding"], "utf-8")
+
     def test_game_exp_failure_never_installs_main_skill(self):
         with tempfile.TemporaryDirectory() as t:
             home = pathlib.Path(t) / "home"
