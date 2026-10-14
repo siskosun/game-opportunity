@@ -170,6 +170,19 @@ def _verify_source_version(root: pathlib.Path, tag: str) -> None:
         raise BundleInstallError("Game-exp release version/identity mismatch")
 
 
+SAFE_TRACEBACK_CLASSES = (
+    "BadZipFile", "CalledProcessError", "FileExistsError", "IsADirectoryError",
+    "NotADirectoryError", "RuntimeError", "KeyError", "IndexError",
+    "AssertionError", "NameError", "OverflowError", "SystemExit",
+    "OSError", "PermissionError", "FileNotFoundError", "AttributeError",
+    "TypeError", "ValueError", "UnicodeDecodeError", "JSONDecodeError",
+    "TimeoutError", "URLError", "HTTPError", "Error", "RecursionError",
+    "NotImplementedError", "ConnectionError", "SSLError", "LookupError",
+    "EOFError", "MemoryError", "ImportError", "ModuleNotFoundError",
+    "SyntaxError", "TOMLDecodeError", "ValueError",
+)
+
+
 OFFICIAL_FAILURE_CATEGORIES = (
     "UV_NOT_FOUND", "WINDOWS_PATH", "WINDOWS_FILE_LOCK", "WINDOWS_ACCESS",
     "COMPANION_SYNC", "PYTHON_MODULE", "RELEASE_SOURCE", "CONFIG",
@@ -181,6 +194,7 @@ OFFICIAL_FAILURE_CATEGORIES = (
     "PYTHON_TRACEBACK_FILENOTFOUNDERROR", "PYTHON_TRACEBACK_UNICODEERROR",
     "PYTHON_TRACEBACK_PERMISSIONERROR", "PYTHON_TRACEBACK_SYNTAXERROR",
     "PYTHON_TRACEBACK_OTHER",
+    *(("PYTHON_TRACEBACK_" + value.upper()) for value in SAFE_TRACEBACK_CLASSES),
 )
 
 
@@ -193,11 +207,12 @@ def official_error_category(stdout: str, stderr: str = "") -> str:
         # an import, argparse or interpreter failure before its error handler.
         detail = stderr.lower()
         if "traceback (most recent call last)" in detail:
-            for kind in ("modulenotfounderror", "importerror", "typeerror",
-                         "attributeerror", "valueerror", "oserror", "filenotfounderror",
-                         "unicodeerror", "permissionerror", "syntaxerror"):
-                if kind in detail:
-                    return "PYTHON_TRACEBACK_" + kind.upper()
+            # Python's final traceback line names the exception *type*; never
+            # return its message, traceback text, paths or process environment.
+            for line in reversed(stderr.splitlines()):
+                match = re.match(r"^(?:[a-zA-Z_][a-zA-Z0-9_]*\.)*([a-zA-Z_][a-zA-Z0-9_]{1,50})(?::|$)", line.strip())
+                if match and match.group(1) in SAFE_TRACEBACK_CLASSES:
+                    return "PYTHON_TRACEBACK_" + match.group(1).upper()
             return "PYTHON_TRACEBACK_OTHER"
         if "usage:" in detail or "unrecognized arguments:" in detail:
             return "ARGPARSE_REJECTED"
