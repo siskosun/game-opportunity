@@ -80,6 +80,7 @@ For **explicit local** installation in Cursor, Codex or Qoder, clone the public 
 ```bash
 git clone https://github.com/siskosun/game-opportunity.git
 cd game-opportunity
+python -m pip install uv
 ```
 
 Then:
@@ -87,10 +88,10 @@ Then:
 ```bash
 python skills/game-opportunity/scripts/install_bundle.py --harness cursor --plan
 python skills/game-opportunity/scripts/install_bundle.py --harness cursor --json
-python skills/game-opportunity/scripts/install_bundle.py --harness cursor --check --json
+python skills/game-opportunity/scripts/install_bundle.py --harness cursor --verify --online --json
 ```
 
-Use `codex` or `qoder` as appropriate. This runs the **official published-stable game-exp installer**, which also installs/syncs the selected Harness's H5 and Godot companions, then installs game-opportunity. It requires working GitHub connectivity. `--harness all` requires an explicit choice. `--check` is local presence only, not game-exp Doctor; check the official game-exp status/health before experimenting.
+Use `codex` or `qoder` as appropriate. This runs the **official published-stable game-exp installer**, which also installs/syncs the selected Harness's H5 and Godot companions, then installs game-opportunity. It requires Python 3.11+, the `uv` CLI (installable via pip as shown above), and working GitHub connectivity. `--harness all` requires an explicit choice. `--check` is local presence only, not game-exp Doctor; check the official game-exp status/health before experimenting.
 
 **Importing `skill.zip` to ChatGPT web cannot automatically execute installers, install game-exp, or configure a local MCP runtime.** Set up game-exp separately in an authorized supported environment; without it, game-opportunity can still produce read-only research. No public opportunity-card or private user evidence is uploaded automatically. See [full workflow](skills/game-opportunity/references/full-workflow.md).
 
@@ -105,7 +106,7 @@ For a read-only freshness/integrity check, use `python skills/game-opportunity/s
 
 ## v0.4.1: check the other three Skills before invoking them
 
-Historical v0.4.1 lock (superseded by v0.4.2): [compatibility.lock.json](skills/game-opportunity/compatibility.lock.json). The verified-as-published tags are **game-exp v1.5.2 (stable GitHub Release)**, **H5 v0.2.3 (semver tag)** and **Godot v1.0.5 (semver tag)**. These are version/source pins with static CI evidence, **not** proof of a complete live end-to-end run. Upstream `main` may be ahead of these tags, and game-opportunity itself has not yet been formally released at this point.
+Historical v0.4.1 lock (superseded by v0.4.2; the linked [compatibility.lock.json](skills/game-opportunity/compatibility.lock.json) now contains the current pins): The verified-as-published tags are **game-exp v1.5.2 (stable GitHub Release)**, **H5 v0.2.3 (semver tag)** and **Godot v1.0.5 (semver tag)**. These are version/source pins with static CI evidence, **not** proof of a complete live end-to-end run. This describes the historical 0.4.1 state only. All four current versions have since been released; refer to v0.4.2 above. A source-branch update never upgrades installed Skills automatically.
 
 Before delegating local gameplay work:
 
