@@ -149,9 +149,15 @@ python skills/game-opportunity/scripts/validation_cycle.py assess --help
 本版自动测试使用合成数据；真实玩家试运行、正式安装的跨 Harness 行为路由，以及生产环境 game-exp 实验端到端测试，仍须独立验证。
 
 
+## v0.4.3：跨宿主行为验证证据校验
+
+本次发布新增维护者使用的 `dev/audit_host_evals.py`、专项单元测试与[跨宿主测试证据验收规范](evals/HOST-EVIDENCE-GATE.md)，用于阻止把缺失证据、错误路由和不完整的人工测试记录误报为 PASS。它只检查测试记录的结构和声明，**不会**替代 Cursor、Codex、Qoder、ChatGPT 的真实运行、独立审阅或真人玩家测试。
+
+配套技能继续使用已经正式发布且与各自 main 一致的 **game-exp v1.5.3、H5 v0.2.4、Godot v1.0.6**。四技能安装检查与 game-exp 的人工决策边界没有变化，不为没有代码差异的配套技能重新发布空版本。
+
 ## v0.4.2：四技能正式发布版联动
 
-当前通过发布来源核验的四技能组合为：主技能 **game-opportunity v0.4.2**，以及 **game-exp v1.5.3**、**H5 v0.2.4**、**Godot v1.0.6**。兼容锁记录各配套技能的确切提交和入口文件摘要，不再引用下方 v0.4.1 的历史基线。
+v0.4.2 时通过发布来源核验的四技能组合为：主技能 **game-opportunity v0.4.2**，以及 **game-exp v1.5.3**、**H5 v0.2.4**、**Godot v1.0.6**。兼容锁记录各配套技能的确切提交和入口文件摘要，不再引用下方 v0.4.1 的历史基线。
 
 本仓库新增 GitHub Actions 临时环境真实联网安装检查：仅在隔离 HOME 安装四个已经发布的技能，读取版本、来源和摘要，不运行真实游戏项目，也不会触碰用户本机。安装检查通过不等于 game-exp Doctor、人工 Review 或玩家测试完成。
 
