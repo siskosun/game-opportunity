@@ -262,8 +262,15 @@ def run_official_installer(root: pathlib.Path, home: pathlib.Path, harness: str,
     args = [sys.executable, str(root / "tools/game-exp/install_harnesses.py"),
             "--source-root", str(root), "--home", str(home), "--harness", harness,
             "--channel", "stable", "--release", tag, "--json"]
+    # Windows redirected stdout can default to a legacy code page. The
+    # official game-exp JSON result includes Chinese fields (next_zh); force
+    # UTF-8 *inside the child* as well as when decoding it in this parent.
+    child_env = os.environ.copy()
+    child_env["PYTHONIOENCODING"] = "utf-8"
+    child_env["PYTHONUTF8"] = "1"
     try:
-        proc = subprocess.run(args, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=300, check=False)
+        proc = subprocess.run(args, capture_output=True, text=True, encoding="utf-8", errors="replace",
+                              timeout=300, check=False, env=child_env)
     except (OSError, subprocess.TimeoutExpired) as exc:
         raise BundleInstallError(f"game-exp official installer did not finish: {exc}") from exc
     if proc.returncode != 0:
