@@ -97,6 +97,22 @@ Use `codex` or `qoder` as appropriate. This runs the **official published-stable
 Use `scripts/handoff_bundle.py` for ordinary non-authoritative research context when a real playable is requested. game-exp's real current project/Manifest/Bind controls all official experiments. After verified observation, `scripts/link_result.py` records operator-reported provenance in the ordinary opportunity card; it does not assert a Review outcome or mutate the protected Ledger.
 
 
+## v0.4.1: check the other three Skills before invoking them
+
+Published-baseline lock: [compatibility.lock.json](skills/game-opportunity/compatibility.lock.json). The verified-as-published tags are **game-exp v1.5.2 (stable GitHub Release)**, **H5 v0.2.3 (semver tag)** and **Godot v1.0.5 (semver tag)**. These are version/source pins with static CI evidence, **not** proof of a complete live end-to-end run. Upstream `main` may be ahead of these tags, and game-opportunity itself has not yet been formally released at this point.
+
+Before delegating local gameplay work:
+
+```bash
+python skills/game-opportunity/scripts/check_bundle.py --harness cursor --online --json
+# Legacy --check is presence-only; --verify performs a read-only file/version check.
+python skills/game-opportunity/scripts/install_bundle.py --harness cursor --verify --online --json
+```
+
+The result distinguishes `CURRENT`, `UPDATE_AVAILABLE` (new unreviewed upstream tag), `NOT_INSTALLED`, `INCOMPATIBLE` and `UNVERIFIED`. Without `--online`, a pinned match does not prove it is latest. Installation stays an explicit user action; it blocks when latest upstream tags have not yet been reviewed, installs only the locked combination through game-exp's canonical installer, runs a postcheck, and tries to restore the previously installed selected-Harness files on failure. Restore may be incomplete when Windows keeps files locked. No game-exp trusted mutation or automatic update occurs.
+
+A scheduled GitHub Action opens **draft candidate PRs** for newly published upstream versions but does not promote them into the lock or user installations. Run Windows/Linux tests and a real end-to-end pilot before declaring a combination fully certified. See [version-check.md](skills/game-opportunity/references/version-check.md).
+
 ## v0.4.0: predeclared player-behavior validation (local only)
 
 This release retains the v0.3 main-Skill, official game-exp bundle installer, and H5/Godot handoff. It adds `skills/game-opportunity/scripts/validation_cycle.py` to connect actual player evidence to a **pre-test question** without inventing a second trusted experiment lifecycle.

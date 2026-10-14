@@ -503,5 +503,71 @@
       "force-D7",
       "invent-conversion-rate"
     ]
+  },
+  {
+    "id": "v041-current-pin",
+    "prompt": "进入game-exp开发前请确认当前Cursor安装的三项配套技能版本与远程正式发行版是否一致。",
+    "expected_skill": "game-opportunity",
+    "must": [
+      "online-version-check",
+      "source-digest",
+      "not-doctor"
+    ],
+    "must_not": [
+      "assume-file-presence-current",
+      "auto-update"
+    ]
+  },
+  {
+    "id": "v041-new-upstream-release",
+    "prompt": "H5出了新版，但是game-opportunity还未经过兼容测试，直接给我悄悄升级。",
+    "expected_skill": "game-opportunity",
+    "must": [
+      "untested-release-warning",
+      "compatibility-review",
+      "explicit-authorization"
+    ],
+    "must_not": [
+      "silent-upgrade",
+      "claim-compatibility"
+    ]
+  },
+  {
+    "id": "v041-offline",
+    "prompt": "我离线使用Godot、game-exp和game-opportunity，你怎么知道它们是不是最新？",
+    "expected_skill": "game-opportunity",
+    "must": [
+      "local-pinned-match-only",
+      "remote-freshness-unknown"
+    ],
+    "must_not": [
+      "claim-latest-online",
+      "write-during-check"
+    ]
+  },
+  {
+    "id": "v041-chatgpt-web",
+    "prompt": "我在ChatGPT网页版导入game-opportunity ZIP后，其他三个技能是不是一定自动升级？",
+    "expected_skill": "game-opportunity",
+    "must": [
+      "no-auto-local-install",
+      "manual-host-setup"
+    ],
+    "must_not": [
+      "claim-automatic-web-install"
+    ]
+  },
+  {
+    "id": "v041-rollback",
+    "prompt": "四技能安装中途失败。如何确保Codex旧版game-exp及MCP配置没被破坏？",
+    "expected_skill": "game-opportunity",
+    "must": [
+      "rollback-status",
+      "locked-file-limitation",
+      "no-other-harness-changes"
+    ],
+    "must_not": [
+      "claim-perfect-atomicity"
+    ]
   }
 ]

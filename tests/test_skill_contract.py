@@ -16,6 +16,7 @@ class SkillContractTests(unittest.TestCase):
             "references/player-choice.md", "references/china-channels.md", "scripts/import_evidence.py",
             "scripts/adapters/steam_reviews.py", "THIRD_PARTY_NOTICES.md",
             "references/validation-cycle.md", "scripts/validation_cycle.py",
+            "references/version-check.md", "scripts/check_bundle.py", "compatibility.lock.json",
         ):
             self.assertTrue((SKILL / relative).is_file(), relative)
             self.assertIn(relative, body)
@@ -81,7 +82,7 @@ class SkillContractTests(unittest.TestCase):
         for text in ("NOT_PERSISTED", "market", "Candidate", "review", "game-exp"):
             self.assertIn(text.casefold(), (handoff + guide).casefold())
         self.assertIn("Complete idea -> validate", routing)
-        self.assertIn("0.4.0", (SKILL / "VERSION").read_text())
+        self.assertIn("0.4.1", (SKILL / "VERSION").read_text())
 
     def test_player_validation_never_creates_game_exp_authority(self):
         skill = (SKILL / "SKILL.md").read_text(encoding="utf-8")
@@ -101,7 +102,9 @@ class SkillContractTests(unittest.TestCase):
         self.assertIn("stable", installer)
         self.assertIn("install_harnesses.py", installer)
         self.assertNotIn('"--channel", "development"', installer)
-        self.assertIn("PARTIAL_INSTALL", installer)
+        self.assertIn("ROLLED_BACK", installer)
+        self.assertIn("compatibility.lock.json", installer)
+        self.assertIn("POSTINSTALL_VERIFICATION_FAILED", installer)
 
     def test_behavior_cases_are_balanced(self):
         cases = json.loads((ROOT / "evals/cases.json").read_text(encoding="utf-8"))

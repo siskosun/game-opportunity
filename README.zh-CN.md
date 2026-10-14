@@ -36,7 +36,7 @@ python skills/game-opportunity/scripts/install_bundle.py --harness cursor --chec
 
 **ChatGPT 网页端**：导入本 Skill ZIP 并不会自动执行安装脚本，也不能替用户往 Windows 写入 game-exp 的运行时或 MCP 配置。需要用户另行在支持的环境中安装/连接 game-exp，或在网页端通过支持的安装入口分别导入可用的 Skill；没有可信生命周期工具时，仍能研究机会，但不能伪造正式实验操作。
 
-`--check` 只检查文件是否存在，**不等于** game-exp 的 Doctor、版本握手或可信运行状态通过。安装失败应读取错误信息，重新执行同一命令；若 game-exp 已安装但主 Skill 复制失败，会明确报告 `PARTIAL_INSTALL`，不能视为全部成功。具体操作和边界见 [完整工作流](skills/game-opportunity/references/full-workflow.md)。
+`--check` 只检查文件是否存在。要验证已安装版本、源码摘要及远程发布情况，使用 `check_bundle.py --harness cursor --online --json`（或安装器 `--verify --online`）。它依旧**不等于** game-exp 的 Doctor 或真人试玩验收。安装器现在仅安装通过当前版本锁记录的组合，失败会尝试恢复所选 Harness 的原有技能、运行时和配置；恢复成功报告 `ROLLED_BACK`，若文件锁或其他错误导致恢复不全则报告 `ROLLBACK_INCOMPLETE`，不能视为成功。具体操作和边界见 [完整工作流](skills/game-opportunity/references/full-workflow.md)。
 
 ### 从机会到试玩、再回到证据
 
@@ -146,3 +146,29 @@ python skills/game-opportunity/scripts/validation_cycle.py assess --help
 **game-exp 仍是唯一可信实验控制层。** 无论本地观察达到继续或停止信号，都不能自动成为 game-exp 的 Candidate Review PASS/FAIL、PROMISING、SELECTED 或 REJECTED。H5/Godot 的机器测试也不能证明真实玩家喜欢该玩法。
 
 本版自动测试使用合成数据；真实玩家试运行、正式安装的跨 Harness 行为路由，以及生产环境 game-exp 实验端到端测试，仍须独立验证。
+
+
+## v0.4.1：调用前检查版本与兼容性
+
+本地版本检查器：[check_bundle.py](skills/game-opportunity/scripts/check_bundle.py)。已发布版本锁：[compatibility.lock.json](skills/game-opportunity/compatibility.lock.json)。目前锁定 **game-exp v1.5.2 正式 Release、H5 v0.2.3 语义标签、Godot v1.0.5 语义标签**；这些来源在 GitHub 上可核对，但锁定版本只通过静态契约与工程测试，**尚未完成真人端到端实测**。另外三个技能的 `main` 含有尚未正式发布的兼容说明；它们不会因 GitHub 合并自动安装到用户设备。
+
+在进入由其他技能执行的本地原型或受管实验前，运行只读检查：
+
+```powershell
+python skills/game-opportunity/scripts/check_bundle.py --harness cursor --online --json
+# 也可以通过主安装器检查，均不会写入：
+python skills/game-opportunity/scripts/install_bundle.py --harness cursor --verify --online --json
+```
+
+结果区分 `CURRENT`（当前正式版本锁匹配）、`UPDATE_AVAILABLE`（出现未经联合验证的新标签）、`NOT_INSTALLED`、`INCOMPATIBLE`、`UNVERIFIED`。不联网的结果不会声称“已是远程最新版”。出现新版本并不直接安装，应先通过兼容性审查，确认后再更新版本锁和安装器。旧的 `--check` 仍只是文件存在性检查。
+
+配套安装命令不变，但会先核对当前锁定的正式发布版本：
+
+```powershell
+python skills/game-opportunity/scripts/install_bundle.py --harness cursor --plan
+python skills/game-opportunity/scripts/install_bundle.py --harness cursor --json
+```
+
+脚本不会在普通 Skill 调用时暗中安装；只有用户授权执行才会修改当前 Harness。安装后再次核查，失败尝试整体恢复，若 Windows 锁定文件造成恢复失败则明确报错。仍必须按 game-exp 官方流程检查 Doctor、当前项目能力及人工 Review。网页版 ChatGPT 无法靠导入 ZIP 来执行这些本地检查或安装其他技能。
+
+[上游版本监测工作流](.github/workflows/upstream-version-watch.yml) 定期读取正式发布版本；发现新版本只尝试提出**待审核的 Draft PR**，不会自动替换兼容版本锁。GitHub Actions 账户需有允许创建 PR 的权限；如果没有，该自动提议步骤会报告失败。详见[版本校验规则](skills/game-opportunity/references/version-check.md)。

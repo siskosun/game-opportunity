@@ -14,7 +14,8 @@ This is the **user-facing main Skill** for an end-to-end exploration when the us
 
 ## 0. Capability and version handshake
 
-1. If the user explicitly requests local installation or update, offer `scripts/install_bundle.py` instructions and obtain authorization before execution. **Skill import does not execute that script.** The canonical game-exp stable installer also syncs H5 and Godot Skills in the selected Harness.
+1. Before any delegated **local** game-exp/H5/Godot action, when shell execution is available, run `scripts/check_bundle.py --harness <name> --online --json` to compare installed files with `compatibility.lock.json` and published tags. `CURRENT` is **pin-match only**, not game-exp Doctor. `UPDATE_AVAILABLE` means a newer upstream Release/tag is untested; keep the pinned version, do not upgrade without compatibility review. `INCOMPATIBLE`/`UNVERIFIED` must be reported, not silently ignored. Pure opportunity research proceeds without this gate. Read `references/version-check.md` for the exact state meanings. This instruction is not an enforceable Skill-load hook.
+2. If the user explicitly requests local installation or update, offer `scripts/install_bundle.py` instructions and obtain authorization before execution. **Skill import does not execute that script.** The canonical game-exp stable installer also syncs H5 and Godot Skills in the selected Harness.
 2. In Cursor/Codex/Qoder, invoke `python <game-opportunity-skill>/scripts/install_bundle.py --harness <name> --plan` for an offline read-only target plan. Then run without `--plan` only on explicit user installation instruction. Prefer the official stable Release by default; never silently run game-exp `main` or downgrade. Check the game-exp `version_state` and Doctor through the official interfaces before bound mutations.
 3. On ChatGPT web, Skill upload **cannot** auto-install another Skill, runtime, GitHub MCP, H5 or Godot. Ask the user to install/authorize game-exp separately in the supported UI/connected environment. When unavailable, continue read-only research and report the specific blocker; do not fake installed capability.
 4. Do not update other Harnesses unless the user explicitly asks for `--harness all`. Do not auto-change target repository visibility or publish research.
@@ -63,7 +64,7 @@ After real evidence exists, record one dated observation in the ordinary card's 
 ## 6. Failure paths and boundaries
 
 - game-exp not installed/authorized: read-only opportunity work continues. Provide install instructions; never simulate mutation.
-- game-exp install fails: main Skill installer stops before installing itself; canonical game-exp rollback semantics apply. If opportunity stage fails after game-exp success, report `PARTIAL_INSTALL` and allow safe same-command retry.
+- game-exp install fails: main Skill installer stops before installing itself; canonical game-exp rollback semantics apply. If the opportunity stage or postcheck fails after game-exp success, attempt whole-selected-Harness restore and report `ROLLED_BACK` or `ROLLBACK_INCOMPLETE` (for locked files or restoration errors). Do not claim perfectly atomic rollback on every operating system.
 - Rate limited, Chinese platforms inaccessible, no radar: label `UNKNOWN` and work from authorized supplied evidence; do not bypass access controls.
 - No clear real-world testing result: record a proposed plan, not an observation.
 - Multiple ideas: comparison at hypothesis level, sequential experiments unless user explicitly approves parallel projects.

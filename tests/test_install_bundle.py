@@ -118,7 +118,9 @@ class BundleInstallerTests(unittest.TestCase):
                 with mock.patch.object(installer, "select_published_release", return_value={"tag_name": "v1.5.2"}), \
                      mock.patch.object(installer, "_download_archive"), \
                      mock.patch.object(installer, "_safe_extract", return_value=fake), \
-                     mock.patch.object(installer, "run_official_installer", side_effect=fake_run):
+                     mock.patch.object(installer, "run_official_installer", side_effect=fake_run), \
+                     mock.patch.object(installer, "preflight_released_pins"), \
+                     mock.patch.object(installer.check_bundle, "evaluate", return_value={"status": "CURRENT"}):
                     result = installer.bundle_install(home, name)
                 self.assertEqual(result["status"], "PASS")
                 for host in selected:
@@ -135,8 +137,10 @@ class BundleInstallerTests(unittest.TestCase):
             with mock.patch.object(installer, "select_published_release", return_value={"tag_name": "v1.5.2"}), \
                  mock.patch.object(installer, "_download_archive"), \
                  mock.patch.object(installer, "_safe_extract", return_value=fake), \
-                 mock.patch.object(installer, "run_official_installer", side_effect=installer.BundleInstallError("fake missing gh")):
-                with self.assertRaisesRegex(installer.BundleInstallError, "missing gh"):
+                 mock.patch.object(installer, "run_official_installer", side_effect=installer.BundleInstallError("fake missing gh")), \
+                 mock.patch.object(installer, "preflight_released_pins"):
+
+                with self.assertRaisesRegex(installer.BundleInstallError, "ROLLED_BACK"):
                     installer.bundle_install(home, "cursor")
             self.assertFalse((home / ".cursor" / "skills/game-opportunity").exists())
 

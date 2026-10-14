@@ -7,6 +7,7 @@ an experiment Ledger, any user project repository, or a different Harness.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import os
 import pathlib
@@ -21,6 +22,8 @@ import urllib.parse
 import urllib.request
 import uuid
 import zipfile
+
+import check_bundle
 
 GAME_EXP_REPO = "siskosun/game-exp"
 SUPPORTED_HARNESSES = ("cursor", "codex", "qoder")
@@ -192,7 +195,7 @@ def _skill_files() -> list[pathlib.Path]:
     if not (SKILL_DIR / "SKILL.md").is_file() or not (SKILL_DIR / "agents/openai.yaml").is_file():
         raise BundleInstallError("game-opportunity Skill installation source is incomplete")
     # Only source-approved files. Do not copy local cards, caches, or user data.
-    approved = ("SKILL.md", "VERSION", "LICENSE", "THIRD_PARTY_NOTICES.md")
+    approved = ("SKILL.md", "VERSION", "LICENSE", "THIRD_PARTY_NOTICES.md", "compatibility.lock.json")
     roots = ("agents", "references", "scripts", "templates")
     files = [SKILL_DIR / p for p in approved if (SKILL_DIR / p).is_file()]
     for folder in roots:
@@ -217,6 +220,12 @@ def install_skill_targets(home: pathlib.Path, harnesses: list[str]) -> None:
             shutil.copy2(p, dest)
         if not (staged / "SKILL.md").is_file():
             raise BundleInstallError("Staged Skill missing entrypoint")
+        files_hash = {p.relative_to(staged).as_posix(): hashlib.sha256(p.read_bytes()).hexdigest()
+                      for p in staged.rglob("*") if p.is_file()}
+        manifest = {"schema_version": 1, "bundle_version": (staged / "VERSION").read_text(encoding="utf-8").strip(),
+                    "lock_sha256": files_hash["compatibility.lock.json"], "files": dict(sorted(files_hash.items()))}
+        (staged / ".install-integrity.json").write_text(
+            json.dumps(manifest, ensure_ascii=False, sort_keys=True, indent=2) + "\n", encoding="utf-8")
         backups: dict[pathlib.Path, pathlib.Path | None] = {}
         try:
             for harness in harnesses:
@@ -247,43 +256,141 @@ def install_skill_targets(home: pathlib.Path, harnesses: list[str]) -> None:
             raise
 
 
+def _controlled_paths(home: pathlib.Path, selected: list[str]) -> list[pathlib.Path]:
+    """Snapshot only the selected Harness managed paths and its game-exp config."""
+    cfg = {"cursor": pathlib.Path(".cursor/mcp.json"),
+           "codex": pathlib.Path(".codex/config.toml"),
+           "qoder": pathlib.Path(".qoder/settings.json")}
+    paths: list[pathlib.Path] = []
+    for harness in selected:
+        for name in ("game-opportunity", "game-exp", "h5-game-prototype-agent", "godot-prototype-studio"):
+            paths.append(home / f".{harness}" / "skills" / name)
+        paths.append(home / ".game-exp" / "runtimes" / harness)
+        paths.append(home / cfg[harness])
+    return paths
+
+
+class BundleSnapshot:
+    """Best-effort restore of the whole selected four-Skill installation.
+
+    This cannot promise perfect rollback of files that another running process
+    keeps locked. Report ROLLBACK_INCOMPLETE rather than implying atomicity.
+    """
+    def __init__(self, paths: list[pathlib.Path]):
+        self.tmp = tempfile.TemporaryDirectory(prefix="game-opportunity-rollback-")
+        self.records: list[tuple[pathlib.Path, str, pathlib.Path]] = []
+        try:
+            for i, path in enumerate(dict.fromkeys(paths)):
+                if path.is_symlink() or path.parent.is_symlink():
+                    raise BundleInstallError("Unsafe symlink in bundle installation targets")
+                backup = pathlib.Path(self.tmp.name) / str(i)
+                if path.is_dir():
+                    shutil.copytree(path, backup, symlinks=True)
+                    kind = "directory"
+                elif path.is_file():
+                    shutil.copy2(path, backup)
+                    kind = "file"
+                elif path.exists():
+                    raise BundleInstallError("Unsupported installation target type")
+                else:
+                    kind = "absent"
+                self.records.append((path, kind, backup))
+        except Exception:
+            self.close()
+            raise
+
+    def restore(self) -> None:
+        errors = []
+        for path, kind, backup in reversed(self.records):
+            try:
+                if path.is_symlink() or path.parent.is_symlink():
+                    raise BundleInstallError("Unsafe replacement target during rollback")
+                if path.is_dir():
+                    shutil.rmtree(path)
+                elif path.is_file():
+                    path.unlink()
+                if kind == "directory":
+                    path.parent.mkdir(parents=True, exist_ok=True)
+                    shutil.copytree(backup, path, symlinks=True)
+                elif kind == "file":
+                    path.parent.mkdir(parents=True, exist_ok=True)
+                    shutil.copy2(backup, path)
+            except (OSError, BundleInstallError) as exc:
+                errors.append(f"{path.name}: {type(exc).__name__}")
+        if errors:
+            raise BundleInstallError("ROLLBACK_INCOMPLETE: " + ", ".join(errors))
+
+    def close(self) -> None:
+        self.tmp.cleanup()
+
+
+def preflight_released_pins(lock: dict) -> None:
+    remote = check_bundle.remote_status(lock)
+    issues = {name: row["state"] for name, row in remote.items()
+              if row["state"] != "PINNED_LATEST_PUBLISHED"}
+    if issues:
+        raise BundleInstallError("COMPATIBILITY_REVIEW_REQUIRED: published components differ from lock or GitHub metadata is unavailable: "
+                                 + ", ".join(f"{n}={s}" for n, s in issues.items()))
+
+
 def bundle_install(home: pathlib.Path, harness: str, release: str | None = None) -> dict:
     selected = list(SUPPORTED_HARNESSES) if harness == "all" else [harness]
     for h in selected:
         target_dir(home, h)
-    # Source is validated before invoking the game-exp trusted installer. The
-    # canonical installer itself resolves and validates the chosen stable tag.
-    row = select_published_release(release)
+    lock = check_bundle.load_lock()
+    pinned = lock["components"]["game-exp"]["tag"]
+    if release is not None and (not RELEASE_RE.fullmatch(release) or
+                                tuple(map(int, RELEASE_RE.fullmatch(release).groups())) !=
+                                tuple(map(int, RELEASE_RE.fullmatch(pinned).groups()))):
+        raise BundleInstallError("INCOMPATIBLE: explicitly requested game-exp Release differs from the bundle lock")
+    # Stop before writing if game-exp/H5/Godot have newer, unreviewed releases.
+    preflight_released_pins(lock)
+    row = select_published_release(pinned)
     tag = str(row["tag_name"])
+    if tag != pinned:
+        raise BundleInstallError("Published game-exp Release differs from the compatibility lock")
     with tempfile.TemporaryDirectory(prefix="game-opportunity-game-exp-") as tmp:
         t = pathlib.Path(tmp)
         archive = t / "game-exp.zip"
         _download_archive(tag, archive)
         root = _safe_extract(archive, t / "src")
         _verify_source_version(root, tag)
-        game_exp_result = run_official_installer(root, home, harness, tag)
-    # If this step fails, report partial install, not fake atomic bundle success.
-    try:
-        install_skill_targets(home, selected)
-    except Exception as exc:
-        raise BundleInstallError("PARTIAL_INSTALL: game-exp installed; opportunity Skill install failed; retry same command after correcting local permissions") from exc
+        # Includes canonical game-exp runtime/MCP config and H5/Godot targets.
+        snapshot = BundleSnapshot(_controlled_paths(home, selected))
+        try:
+            run_official_installer(root, home, harness, tag)
+            install_skill_targets(home, selected)
+            verified = check_bundle.evaluate(home, selected, online=True)
+            if verified["status"] != "CURRENT":
+                raise BundleInstallError("POSTINSTALL_VERIFICATION_FAILED: " + verified["status"])
+        except Exception as exc:
+            try:
+                snapshot.restore()
+            except Exception as rollback_exc:
+                raise BundleInstallError(f"ROLLBACK_INCOMPLETE: bundle failed ({type(exc).__name__}); restore failed ({rollback_exc})") from rollback_exc
+            raise BundleInstallError(f"ROLLED_BACK: bundle install failed ({type(exc).__name__}); previous managed paths restored") from exc
+        finally:
+            snapshot.close()
     return {"status": "PASS", "bundle": "game-opportunity + game-exp + official H5/Godot companions",
             "game_exp_release": tag, "game_exp_source_channel": "stable",
-            "harnesses": selected, "result": "INSTALLED", "authority": "game-exp unchanged; no experiment action performed",
-            "installed_presence": [installed_presence(home, h) for h in selected]}
+            "harnesses": selected, "result": "INSTALLED_VERIFIED_PIN", "authority": "game-exp unchanged; Doctor not run",
+            "lock_bundle_version": lock["bundle_version"], "installed_presence": [installed_presence(home, h) for h in selected],
+            "verification": "PIN_MATCH_STATIC_ONLY_NOT_TRUSTED_DOCTOR"}
 
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--harness", required=True, choices=(*SUPPORTED_HARNESSES, "all"))
     parser.add_argument("--home", type=pathlib.Path, default=pathlib.Path.home())
-    parser.add_argument("--game-exp-release", help="Optional explicitly published game-exp Release, e.g. v1.5.2. Default latest published stable.")
+    parser.add_argument("--game-exp-release", help="Optional published game-exp Release; must match tested compatibility lock. No implicit latest upgrade.")
     parser.add_argument("--plan", action="store_true", help="Offline, read-only target/side-effect plan")
-    parser.add_argument("--check", action="store_true", help="Offline file presence only; not game-exp Doctor or trusted runtime verification")
+    parser.add_argument("--check", action="store_true", help="Legacy offline file presence only")
+    parser.add_argument("--verify", action="store_true", help="Read-only source-version and installed-file verification")
+    parser.add_argument("--online", action="store_true", help="With --verify, check latest published upstream Release/tags")
     parser.add_argument("--json", action="store_true")
     args = parser.parse_args(argv)
-    if args.plan and args.check:
-        parser.error("Choose --plan or --check")
+    if sum((args.plan, args.check, args.verify)) > 1 or (args.online and not args.verify):
+        parser.error("Choose one of --plan, --check, --verify; --online requires --verify")
     try:
         home = args.home.expanduser().resolve()
         selected = list(SUPPORTED_HARNESSES) if args.harness == "all" else [args.harness]
@@ -291,12 +398,15 @@ def main(argv: list[str] | None = None) -> int:
             result = {"status": "PLAN_ONLY", "harnesses": selected,
                       "main_skill": "game-opportunity", "dependency": "official game-exp published stable Release",
                       "implicit_companions": ["h5-game-prototype-agent", "godot-prototype-studio"],
-                      "effects": ["install game-exp MCP/runtime/config in selected Harness only", "sync H5/Godot Skills via game-exp canonical installer", "install game-opportunity Skill in selected Harness only"],
-                      "network_required_for_install": True, "chatgpt_web": "manual two-Skill import only", "no_writes": True,
+                      "effects": ["verify pinned releases (no unreviewed latest upgrades)", "install game-exp MCP/runtime/config in selected Harness only", "sync pinned H5/Godot Skills via game-exp canonical installer", "install game-opportunity Skill in selected Harness only", "postcheck + rollback on failure"],
+                      "network_required_for_install": True, "chatgpt_web": "manual separate Skill/runtime install only", "no_writes": True,
+                      "locked_versions": {name: row["version"] for name, row in check_bundle.load_lock()["components"].items()},
                       "installed_presence": [installed_presence(home, h) for h in selected]}
         elif args.check:
             result = {"status": "PRESENCE_ONLY", "harnesses": selected, "installed_presence": [installed_presence(home, h) for h in selected],
                       "warning": "Presence checks cannot prove game-exp runtime/schema/Doctor health"}
+        elif args.verify:
+            result = check_bundle.evaluate(home, selected, online=args.online)
         else:
             result = bundle_install(home, args.harness, args.game_exp_release)
     except (BundleInstallError, OSError, ValueError, zipfile.BadZipFile) as exc:
@@ -310,7 +420,7 @@ def main(argv: list[str] | None = None) -> int:
         print(json.dumps(result, ensure_ascii=False, indent=2))
     else:
         print(json.dumps(result, ensure_ascii=False, indent=2))
-    return 0
+    return 2 if args.verify and result["status"] in ("INCOMPATIBLE", "UNVERIFIED", "NOT_INSTALLED") else 0
 
 
 if __name__ == "__main__":

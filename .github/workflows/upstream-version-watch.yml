@@ -1,0 +1,61 @@
+name: Upstream released-version watch
+on:
+  schedule:
+    - cron: '17 0 * * *'
+  workflow_dispatch:
+permissions:
+  contents: write
+  pull-requests: write
+concurrency:
+  group: upstream-version-watch
+  cancel-in-progress: false
+jobs:
+  propose:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+          fetch-depth: 1
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Read-only GitHub upstream version comparison
+        id: watch
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python dev/upstream_watch.py --output docs/upstream-candidate.json
+          if test -f docs/upstream-candidate.json; then
+            echo 'new_candidate=true' >> "$GITHUB_OUTPUT"
+          else
+            echo 'new_candidate=false' >> "$GITHUB_OUTPUT"
+          fi
+      - name: Create or update a draft proposal, never a certified lock
+        if: steps.watch.outputs.new_candidate == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          branch='automation/upstream-compatibility-candidate'
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git fetch origin "refs/heads/${branch}:refs/remotes/origin/${branch}" || true
+          if git show "refs/remotes/origin/${branch}:docs/upstream-candidate.json" > /tmp/prior-candidate.json 2>/dev/null; then
+            if cmp -s docs/upstream-candidate.json /tmp/prior-candidate.json; then
+              echo 'The existing draft already contains this candidate; no new commit.'
+              exit 0
+            fi
+          fi
+          git switch -C "${branch}"
+          git add docs/upstream-candidate.json
+          git commit -m 'chore: propose untested upstream released-version update'
+          git push --force-with-lease -u origin "${branch}"
+          existing=$(gh pr list --base main --head "${branch}" --state open --json number --jq 'length')
+          if [ "$existing" = '0' ]; then
+            gh pr create --draft --base main --head "${branch}" \
+              --title 'chore: review newly published companion versions (unverified)' \
+              --body 'Automatic **proposal only**. This PR does not update compatibility.lock.json or approve any new combination. Review exact upstream tags, run cross-repository integration tests and obtain maintainer approval before a separate lock update. Do not merge this candidate as evidence of compatibility.'
+          fi
