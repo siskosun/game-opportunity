@@ -170,18 +170,113 @@ def _verify_source_version(root: pathlib.Path, tag: str) -> None:
         raise BundleInstallError("Game-exp release version/identity mismatch")
 
 
+SAFE_TRACEBACK_CLASSES = (
+    "BadZipFile", "CalledProcessError", "FileExistsError", "IsADirectoryError",
+    "NotADirectoryError", "RuntimeError", "KeyError", "IndexError",
+    "AssertionError", "NameError", "OverflowError", "SystemExit",
+    "OSError", "PermissionError", "FileNotFoundError", "AttributeError",
+    "TypeError", "ValueError", "UnicodeDecodeError", "JSONDecodeError",
+    "TimeoutError", "URLError", "HTTPError", "Error", "RecursionError",
+    "NotImplementedError", "ConnectionError", "SSLError", "LookupError",
+    "EOFError", "MemoryError", "ImportError", "ModuleNotFoundError",
+    "SyntaxError", "TOMLDecodeError", "ValueError",
+)
+
+
+OFFICIAL_FAILURE_CATEGORIES = (
+    "UV_NOT_FOUND", "WINDOWS_PATH", "WINDOWS_FILE_LOCK", "WINDOWS_ACCESS",
+    "COMPANION_SYNC", "PYTHON_MODULE", "RELEASE_SOURCE", "CONFIG",
+    "NETWORK", "FILESYSTEM", "INSTALLER_UNKNOWN", "CHILD_OUTPUT_NOT_JSON",
+    "ARGPARSE_REJECTED", "TLS_FAILURE", "NETWORK_TIMEOUT", "INVALID_ARGUMENT",
+    "PYTHON_TRACEBACK_MODULENOTFOUNDERROR", "PYTHON_TRACEBACK_IMPORTERROR",
+    "PYTHON_TRACEBACK_TYPEERROR", "PYTHON_TRACEBACK_ATTRIBUTEERROR",
+    "PYTHON_TRACEBACK_VALUEERROR", "PYTHON_TRACEBACK_OSERROR",
+    "PYTHON_TRACEBACK_FILENOTFOUNDERROR", "PYTHON_TRACEBACK_UNICODEERROR",
+    "PYTHON_TRACEBACK_PERMISSIONERROR", "PYTHON_TRACEBACK_SYNTAXERROR",
+    "PYTHON_TRACEBACK_OTHER",
+    *(("PYTHON_TRACEBACK_" + value.upper()) for value in SAFE_TRACEBACK_CLASSES),
+)
+
+
+def official_error_category(stdout: str, stderr: str = "") -> str:
+    """Categorize child-reported failures without exporting private error text."""
+    try:
+        parsed = json.loads(stdout)
+    except (TypeError, ValueError):
+        # The official installer normally emits JSON. A missing envelope means
+        # an import, argparse or interpreter failure before its error handler.
+        detail = stderr.lower()
+        if "traceback (most recent call last)" in detail:
+            # Python's final traceback line names the exception *type*; never
+            # return its message, traceback text, paths or process environment.
+            for line in reversed(stderr.splitlines()):
+                match = re.match(r"^(?:[a-zA-Z_][a-zA-Z0-9_]*\.)*([a-zA-Z_][a-zA-Z0-9_]{1,50})(?::|$)", line.strip())
+                if match:
+                    class_name = match.group(1)
+                    if class_name in SAFE_TRACEBACK_CLASSES:
+                        return "PYTHON_TRACEBACK_" + class_name.upper()
+                    # Exception *class only*, never its message/traceback or
+                    # a user path. Restrict to PascalCase ASCII identifiers.
+                    if class_name[0].isupper() and class_name.isascii() and len(class_name) <= 48:
+                        return "PYTHON_TRACEBACK_CLASS_" + class_name.upper()
+            return "PYTHON_TRACEBACK_OTHER"
+        if "usage:" in detail or "unrecognized arguments:" in detail:
+            return "ARGPARSE_REJECTED"
+        if "ssl" in detail or "certificate" in detail:
+            return "TLS_FAILURE"
+        return "CHILD_OUTPUT_NOT_JSON"
+    if not isinstance(parsed, dict):
+        return "CHILD_OUTPUT_NOT_JSON"
+    message = str(parsed.get("error", "")).lower()
+    if "uv is required" in message or ("uv" in message and "not found in path" in message):
+        return "UV_NOT_FOUND"
+    if "ssl" in message or "certificate" in message or "tls" in message:
+        return "TLS_FAILURE"
+    if "timeout" in message or "timed out" in message:
+        return "NETWORK_TIMEOUT"
+    if "invalid argument" in message or "errno 22" in message:
+        return "INVALID_ARGUMENT"
+    if "winerror 32" in message or "being used by another process" in message:
+        return "WINDOWS_FILE_LOCK"
+    if "winerror 5" in message or "access is denied" in message:
+        return "WINDOWS_ACCESS"
+    if "winerror" in message or ("drive" in message and "path" in message):
+        return "WINDOWS_PATH"
+    if "companion" in message or "h5-game-prototype" in message or "godot-prototype" in message:
+        return "COMPANION_SYNC"
+    if "modulenotfounderror" in message or "no module named" in message:
+        return "PYTHON_MODULE"
+    if "release" in message or ("source" in message and "archive" in message):
+        return "RELEASE_SOURCE"
+    if "toml" in message or "config" in message:
+        return "CONFIG"
+    if "urlerror" in message or "http error" in message or "github" in message:
+        return "NETWORK"
+    if "filenotfound" in message or "permission" in message or "directory" in message or "file" in message:
+        return "FILESYSTEM"
+    return "INSTALLER_UNKNOWN"
+
+
 def run_official_installer(root: pathlib.Path, home: pathlib.Path, harness: str, tag: str) -> dict:
     # The published official script is the only writer of game-exp runtime/MCP/companion Skills.
     args = [sys.executable, str(root / "tools/game-exp/install_harnesses.py"),
             "--source-root", str(root), "--home", str(home), "--harness", harness,
             "--channel", "stable", "--release", tag, "--json"]
+    # Windows redirected stdout can default to a legacy code page. The
+    # official game-exp JSON result includes Chinese fields (next_zh); force
+    # UTF-8 *inside the child* as well as when decoding it in this parent.
+    child_env = os.environ.copy()
+    child_env["PYTHONIOENCODING"] = "utf-8"
+    child_env["PYTHONUTF8"] = "1"
     try:
-        proc = subprocess.run(args, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=300, check=False)
+        proc = subprocess.run(args, capture_output=True, text=True, encoding="utf-8", errors="replace",
+                              timeout=300, check=False, env=child_env)
     except (OSError, subprocess.TimeoutExpired) as exc:
         raise BundleInstallError(f"game-exp official installer did not finish: {exc}") from exc
     if proc.returncode != 0:
-        # No raw stdout/stderr: avoid accidentally showing local config values or tokens.
-        raise BundleInstallError(f"Official game-exp installer failed (exit {proc.returncode}); see game-exp installer locally")
+        # A fixed code only: never return the child error, path, or token.
+        category = official_error_category(proc.stdout, proc.stderr)
+        raise BundleInstallError("OFFICIAL_GAME_EXP_INSTALLER_" + category)
     try:
         result = json.loads(proc.stdout)
     except ValueError as exc:
@@ -357,9 +452,12 @@ def bundle_install(home: pathlib.Path, harness: str, release: str | None = None)
         _verify_source_version(root, tag)
         # Includes canonical game-exp runtime/MCP config and H5/Godot targets.
         snapshot = BundleSnapshot(_controlled_paths(home, selected))
+        phase = "OFFICIAL_INSTALLER"
         try:
             run_official_installer(root, home, harness, tag)
+            phase = "MAIN_SKILL_COPY"
             install_skill_targets(home, selected)
+            phase = "POSTINSTALL_VERIFY"
             verified = check_bundle.evaluate(home, selected, online=True)
             if verified["status"] != "CURRENT":
                 raise BundleInstallError("POSTINSTALL_VERIFICATION_FAILED: " + verified["status"])
@@ -367,8 +465,20 @@ def bundle_install(home: pathlib.Path, harness: str, release: str | None = None)
             try:
                 snapshot.restore()
             except Exception as rollback_exc:
-                raise BundleInstallError(f"ROLLBACK_INCOMPLETE: bundle failed ({type(exc).__name__}); restore failed ({rollback_exc})") from rollback_exc
-            raise BundleInstallError(f"ROLLED_BACK: bundle install failed ({type(exc).__name__}); previous managed paths restored") from exc
+                raise BundleInstallError(f"ROLLBACK_INCOMPLETE_{phase}: bundle failed ({type(exc).__name__}); restore failed ({type(rollback_exc).__name__})") from rollback_exc
+            # Exact stage and allowlisted child-failure category; never embed
+            # child stdout/stderr or the raw exception text.
+            suffix = ""
+            if phase == "OFFICIAL_INSTALLER" and isinstance(exc, BundleInstallError):
+                for category in OFFICIAL_FAILURE_CATEGORIES:
+                    if ("OFFICIAL_GAME_EXP_INSTALLER_" + category) in str(exc):
+                        suffix = "_" + category
+                        break
+                if not suffix:
+                    match = re.search(r"OFFICIAL_GAME_EXP_INSTALLER_(PYTHON_TRACEBACK_CLASS_[A-Z0-9_]{2,48})", str(exc))
+                    if match:
+                        suffix = "_" + match.group(1)
+            raise BundleInstallError(f"ROLLED_BACK_{phase}{suffix}: bundle failed ({type(exc).__name__}); previous managed paths restored") from exc
         finally:
             snapshot.close()
     return {"status": "PASS", "bundle": "game-opportunity + game-exp + official H5/Godot companions",

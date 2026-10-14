@@ -21,7 +21,7 @@ class DraftVersionWatch(unittest.TestCase):
         out = {name: {"state": "PINNED_LATEST_PUBLISHED", "pinned_tag": x["tag"], "latest_published_tag": x["tag"]}
                for name, x in watch.check_bundle.load_lock()["components"].items()}
         if update:
-            out["h5-game-prototype-agent"] = {"state": "UPDATE_AVAILABLE_UNTESTED", "pinned_tag": "v0.2.3", "latest_published_tag": "v0.2.4"}
+            out["h5-game-prototype-agent"] = {"state": "UPDATE_AVAILABLE_UNTESTED", "pinned_tag": "v0.2.4", "latest_published_tag": "v0.2.5"}
         return out
 
     def test_no_new_release_writes_nothing(self):
@@ -38,7 +38,7 @@ class DraftVersionWatch(unittest.TestCase):
             self.assertEqual(watch.main(["--output", str(dest)]), 0)
             candidate = json.loads(dest.read_text(encoding="utf-8"))
             self.assertIn("NOT_A_COMPATIBILITY_LOCK", candidate["status"])
-            self.assertEqual(candidate["changes"]["h5-game-prototype-agent"]["proposed_new_tag"], "v0.2.4")
+            self.assertEqual(candidate["changes"]["h5-game-prototype-agent"]["proposed_new_tag"], "v0.2.5")
             self.assertNotIn("selected", json.dumps(candidate).casefold())
             self.assertFalse((ROOT / "docs/upstream-candidate.json").exists())
             self.assertEqual(watch.main(["--output", str(dest)]), 2)

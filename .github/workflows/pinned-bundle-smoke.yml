@@ -1,0 +1,40 @@
+name: Pinned four-Skill ephemeral installation smoke
+on:
+  pull_request:
+    paths:
+      - 'skills/game-opportunity/compatibility.lock.json'
+      - 'skills/game-opportunity/VERSION'
+      - 'skills/game-opportunity/scripts/install_bundle.py'
+      - 'skills/game-opportunity/scripts/check_bundle.py'
+      - 'dev/live_bundle_smoke.py'
+      - '.github/workflows/pinned-bundle-smoke.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'skills/game-opportunity/compatibility.lock.json'
+      - 'skills/game-opportunity/VERSION'
+      - 'dev/live_bundle_smoke.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  smoke:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, windows-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: '3.12'
+      - name: Install official game-exp prerequisite in disposable runner only
+        run: python -m pip install uv
+      - name: Test exact published four-Skill bundle on isolated HOME
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python dev/live_bundle_smoke.py --harness codex --confirm-ephemeral-network-install
