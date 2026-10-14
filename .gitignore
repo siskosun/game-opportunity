@@ -1,0 +1,13 @@
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+.env
+.env.*
+*.pem
+*.key
+*.log
+.DS_Store
+
+# Opportunity drafts are private by default; deliberately use git add -f after review.
+opportunities/OPP-*.md

@@ -1,0 +1,27 @@
+name: Game Opportunity checks
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Unit tests and contract checks
+        run: python -m unittest discover -s tests -v
+      - name: Build importable Skill package
+        run: python dev/build_skill_zip.py
+      - name: Upload distributable Skill ZIP
+        uses: actions/upload-artifact@v4
+        with:
+          name: game-opportunity-skill
+          path: dist/skill.zip
+          if-no-files-found: error
