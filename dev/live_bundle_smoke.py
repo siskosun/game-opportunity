@@ -70,6 +70,11 @@ def run(harness: str = "codex", *, confirmed: bool = False) -> dict:
                 stage = "ROLLBACK_INCOMPLETE"
             elif "ROLLED_BACK" in error:
                 stage = "ROLLED_BACK"
+                # A fixed phase label is safe; reject arbitrary exception text.
+                for phase in ("OFFICIAL_INSTALLER", "MAIN_SKILL_COPY", "POSTINSTALL_VERIFY"):
+                    if "ROLLED_BACK_" + phase in error:
+                        stage += "_" + phase
+                        break
             elif "COMPATIBILITY_REVIEW_REQUIRED" in error:
                 stage = "PREFLIGHT_REJECTED"
             else:
