@@ -10,6 +10,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 from pathlib import Path
 import subprocess
 import sys
@@ -80,6 +81,10 @@ def run(harness: str = "codex", *, confirmed: bool = False) -> dict:
                                 if "ROLLED_BACK_OFFICIAL_INSTALLER_" + code in error:
                                     stage += "_" + code
                                     break
+                            if stage == "ROLLED_BACK_OFFICIAL_INSTALLER":
+                                match = re.search(r"ROLLED_BACK_OFFICIAL_INSTALLER_(PYTHON_TRACEBACK_CLASS_[A-Z0-9_]{2,48})", error)
+                                if match:
+                                    stage += "_" + match.group(1)
                         break
             elif "COMPATIBILITY_REVIEW_REQUIRED" in error:
                 stage = "PREFLIGHT_REJECTED"
