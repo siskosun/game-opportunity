@@ -25,7 +25,7 @@ def audit(cases_path, results_path):
             raise ValueError("missing required results columns")
         for line, row in enumerate(reader, start=2):
             prefix = "row %d" % line
-            cid, host, run = (row.get(k) or "").strip() for k in ("case_id", "host", "run_id")
+            cid, host, run = ((row.get(k) or "").strip() for k in ("case_id", "host", "run_id"))
             if cid not in indexed:
                 errors.append(f"{prefix}: unknown case_id {cid!r}")
                 continue
