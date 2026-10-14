@@ -51,3 +51,11 @@ No automated scraping, recruitment, ad spending, fake-door launch, realtime debu
 - `scripts/handoff_bundle.py` emits untrusted read-only provenance with card hash and same-vs-new-stage question, never a game-exp Manifest or protected Ledger event. `scripts/link_result.py` appends operator-reported result provenance, never Review or selection.
 - Stable release may predate `main` handoff documentation. game-opportunity's full-workflow guide bridges ordinary research context, with a strict official Manifest template and game-exp version/Doctor check at each managed experiment.
 - CI/unit tests cover offline plan, blocked install, host isolation, malicious archive paths, read-only research handoff, reported remote source status, changed-stage requirement, and result evidence append. Host behavior evaluation / a live full workflow is still required.
+
+## v0.4.0 player-behavior validation scope
+
+- Add one optional local preregistration + one-cohort aggregate comparison loop; do not alter game-exp, H5 PROBE, Godot scope, or the opportunity card's required headings.
+- Preserve metric definitions, eligible unique-player denominator, sample method, exact window and lower/upper observation thresholds declared **before** the test. A saved plan SHA alone cannot prove a pretest timestamp; mark that as unverified.
+- Reject mixed snapshots, alternative cohorts or time windows, extra raw-data/PII fields, fractional counts, numerator > denominator, and sample insufficiency. Do not average conflicting evidence or fabricate participant data.
+- Emit bounded, non-authoritative signals only. No implicit game-exp human Review, lifecycle promotion, selection or rejection; no product ROI predictions. Output local private-by-default under `local-evidence/`.
+- Add synthetic examples, Chinese CSV aliases, offline tests and cross-host evaluation cases. Test real player/recruitment and installation separately with explicit authorization.

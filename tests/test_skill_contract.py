@@ -15,6 +15,7 @@ class SkillContractTests(unittest.TestCase):
             "scripts/opportunity_card.py", "references/discovery.md", "references/comparable-games.md",
             "references/player-choice.md", "references/china-channels.md", "scripts/import_evidence.py",
             "scripts/adapters/steam_reviews.py", "THIRD_PARTY_NOTICES.md",
+            "references/validation-cycle.md", "scripts/validation_cycle.py",
         ):
             self.assertTrue((SKILL / relative).is_file(), relative)
             self.assertIn(relative, body)
@@ -80,7 +81,15 @@ class SkillContractTests(unittest.TestCase):
         for text in ("NOT_PERSISTED", "market", "Candidate", "review", "game-exp"):
             self.assertIn(text.casefold(), (handoff + guide).casefold())
         self.assertIn("Complete idea -> validate", routing)
-        self.assertIn("0.3.0", (SKILL / "VERSION").read_text())
+        self.assertIn("0.4.0", (SKILL / "VERSION").read_text())
+
+    def test_player_validation_never_creates_game_exp_authority(self):
+        skill = (SKILL / "SKILL.md").read_text(encoding="utf-8")
+        contract = (SKILL / "references/validation-cycle.md").read_text(encoding="utf-8")
+        for phrase in ("game-exp", "denominator", "pretest", "multiple", "not", "unique"):
+            self.assertIn(phrase.casefold(), (skill + contract).casefold())
+        self.assertIn("scripts/validation_cycle.py", skill)
+        self.assertIn("NOT_A_DECISION", (SKILL / "scripts/validation_cycle.py").read_text(encoding="utf-8"))
 
     def test_no_unsafe_auto_install_claims(self):
         zh = (ROOT / "README.zh-CN.md").read_text(encoding="utf-8")
