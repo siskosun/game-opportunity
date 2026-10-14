@@ -173,21 +173,48 @@ def _verify_source_version(root: pathlib.Path, tag: str) -> None:
 OFFICIAL_FAILURE_CATEGORIES = (
     "UV_NOT_FOUND", "WINDOWS_PATH", "WINDOWS_FILE_LOCK", "WINDOWS_ACCESS",
     "COMPANION_SYNC", "PYTHON_MODULE", "RELEASE_SOURCE", "CONFIG",
-    "NETWORK", "FILESYSTEM", "INSTALLER_UNKNOWN",
+    "NETWORK", "FILESYSTEM", "INSTALLER_UNKNOWN", "CHILD_OUTPUT_NOT_JSON",
+    "ARGPARSE_REJECTED", "TLS_FAILURE", "NETWORK_TIMEOUT", "INVALID_ARGUMENT",
+    "PYTHON_TRACEBACK_MODULENOTFOUNDERROR", "PYTHON_TRACEBACK_IMPORTERROR",
+    "PYTHON_TRACEBACK_TYPEERROR", "PYTHON_TRACEBACK_ATTRIBUTEERROR",
+    "PYTHON_TRACEBACK_VALUEERROR", "PYTHON_TRACEBACK_OSERROR",
+    "PYTHON_TRACEBACK_FILENOTFOUNDERROR", "PYTHON_TRACEBACK_UNICODEERROR",
+    "PYTHON_TRACEBACK_PERMISSIONERROR", "PYTHON_TRACEBACK_SYNTAXERROR",
+    "PYTHON_TRACEBACK_OTHER",
 )
 
 
-def official_error_category(stdout: str) -> str:
+def official_error_category(stdout: str, stderr: str = "") -> str:
     """Categorize child-reported failures without exporting private error text."""
     try:
         parsed = json.loads(stdout)
     except (TypeError, ValueError):
-        return "INSTALLER_UNKNOWN"
+        # The official installer normally emits JSON. A missing envelope means
+        # an import, argparse or interpreter failure before its error handler.
+        detail = stderr.lower()
+        if "traceback (most recent call last)" in detail:
+            for kind in ("modulenotfounderror", "importerror", "typeerror",
+                         "attributeerror", "valueerror", "oserror", "filenotfounderror",
+                         "unicodeerror", "permissionerror", "syntaxerror"):
+                if kind in detail:
+                    return "PYTHON_TRACEBACK_" + kind.upper()
+            return "PYTHON_TRACEBACK_OTHER"
+        if "usage:" in detail or "unrecognized arguments:" in detail:
+            return "ARGPARSE_REJECTED"
+        if "ssl" in detail or "certificate" in detail:
+            return "TLS_FAILURE"
+        return "CHILD_OUTPUT_NOT_JSON"
     if not isinstance(parsed, dict):
-        return "INSTALLER_UNKNOWN"
+        return "CHILD_OUTPUT_NOT_JSON"
     message = str(parsed.get("error", "")).lower()
     if "uv is required" in message or ("uv" in message and "not found in path" in message):
         return "UV_NOT_FOUND"
+    if "ssl" in message or "certificate" in message or "tls" in message:
+        return "TLS_FAILURE"
+    if "timeout" in message or "timed out" in message:
+        return "NETWORK_TIMEOUT"
+    if "invalid argument" in message or "errno 22" in message:
+        return "INVALID_ARGUMENT"
     if "winerror 32" in message or "being used by another process" in message:
         return "WINDOWS_FILE_LOCK"
     if "winerror 5" in message or "access is denied" in message:
@@ -220,7 +247,7 @@ def run_official_installer(root: pathlib.Path, home: pathlib.Path, harness: str,
         raise BundleInstallError(f"game-exp official installer did not finish: {exc}") from exc
     if proc.returncode != 0:
         # A fixed code only: never return the child error, path, or token.
-        category = official_error_category(proc.stdout)
+        category = official_error_category(proc.stdout, proc.stderr)
         raise BundleInstallError("OFFICIAL_GAME_EXP_INSTALLER_" + category)
     try:
         result = json.loads(proc.stdout)
