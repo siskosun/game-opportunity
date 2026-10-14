@@ -16,8 +16,11 @@ class PackagingTests(unittest.TestCase):
             path = builder.build(pathlib.Path(td) / "skill.zip")
             with ZipFile(path) as z:
                 files = z.namelist()
-                self.assertEqual(len(files), 24)
+                self.assertEqual(len(files), 27)
                 self.assertIn("game-opportunity/scripts/install_bundle.py", files)
+                self.assertIn("game-opportunity/scripts/check_bundle.py", files)
+                self.assertIn("game-opportunity/compatibility.lock.json", files)
+                self.assertIn("game-opportunity/references/version-check.md", files)
                 self.assertIn("game-opportunity/references/full-workflow.md", files)
                 self.assertIn("game-opportunity/scripts/handoff_bundle.py", files)
                 self.assertIn("game-opportunity/scripts/link_result.py", files)

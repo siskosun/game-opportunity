@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "bundle_version": "0.4.1",
+  "policy": "released-pins-only",
+  "assurance": "STATIC_CONTRACT_CI_ONLY_NOT_END_TO_END_CERTIFIED",
+  "generated_date": "2026-10-14",
+  "notes": "Pins are verified public tags, not guarantees of integrated real-world testing. Do not auto-advance pins on upstream releases. Strict game-exp human/Doctor gates remain authoritative.",
+  "components": {
+    "game-exp": {
+      "repository": "siskosun/game-exp",
+      "channel": "published_release",
+      "version": "1.5.2",
+      "tag": "v1.5.2",
+      "commit_sha": "e636ff694cc5eaba195cbf47c9221a87c0d66f4e",
+      "skill_git_blob_sha1": "d819ed4ec6e3d2fa6a079d0f18a71274b2756f35",
+      "min_version": "1.5.2"
+    },
+    "h5-game-prototype-agent": {
+      "repository": "siskosun/h5-game-prototype-agent",
+      "channel": "semver_tag",
+      "version": "0.2.3",
+      "tag": "v0.2.3",
+      "commit_sha": "108669b200b62d6bcdee7c509a3140d5ba039c37",
+      "skill_git_blob_sha1": "4638a677a1a42fb3b5d8b68f500d65584fda8594",
+      "min_version": "0.2.3"
+    },
+    "godot-prototype-studio": {
+      "repository": "siskosun/godot-prototype-studio",
+      "channel": "semver_tag",
+      "version": "1.0.5",
+      "tag": "v1.0.5",
+      "commit_sha": "4bdae9db97b4159fdc461c4718125aabd0cd68b1",
+      "skill_git_blob_sha1": "16867c2c362dd11bc4daa5cefbe82e33940e054f",
+      "min_version": "1.0.5"
+    }
+  }
+}

@@ -20,6 +20,10 @@ Read `references/full-workflow.md` for complete idea-to-playable journeys and `r
 5. Produce a brief opportunity card with the same **three** mandatory decision sections: `Key uncertainty`, `Cheapest useful validation`, `Continue / adjust / stop conditions`, using `templates/opportunity-card.md` and an opportunity ID. All new comparisons, attention/choice/experience notes and copy scenarios stay **optional context**, not a new required schema.
 6. Recommend one next action with its evidence limitations. No automatic publication, repository creation, spending, human contact, promotion, or gameplay implementation. For user-facing interventions consult `references/safety.md`.
 
+## Verify compatible installed Skills before delegated work
+
+When about to call game-exp, H5 or Godot from a supported local Harness, first consult `references/version-check.md`. If local execution is available, run `scripts/check_bundle.py --harness <name> --online --json` for a **read-only** version, pinned source and freshness check. `CURRENT` means published pinned files match, not game-exp Doctor or actual player-experience validation. For `UPDATE_AVAILABLE`, keep the verified pinned combination and propose a separately reviewed update; never silently jump to upstream latest. For `INCOMPATIBLE` or `UNVERIFIED`, do not claim a safe managed experiment or mutate its protected state without independently verified game-exp status/Doctor and necessary user approval. No market-only research gate, no hidden startup hook and no automatic installer execution on Skill import.
+
 ## Install the full local bundle on user request only
 
 A Skill ZIP upload never installs game-exp by itself. For explicit **local** bundle installation in Cursor, Codex or Qoder, read `references/full-workflow.md` and guide the user through `scripts/install_bundle.py --harness <cursor|codex|qoder> --plan` and then the authorized install command. The launcher invokes the **official game-exp stable Release installer** (which itself synchronizes H5 and Godot Skills in the selected Harness), then installs this Skill. Never execute installers without user instruction; do not silently use game-exp main or downgrade. ChatGPT web cannot run local installers, automatically install additional Skills, or supply a trusted MCP runtime; require separate supported user installation/connection and state the limitation. Check actual game-exp status/version/Doctor before a bound experiment, not merely file presence.
@@ -60,7 +64,10 @@ This Skill does not require a repository or `PROJECT_READY` for a read-only brai
 - `scripts/adapters/steam_reviews.py`: opt-in, bounded Steam review sampling; do not run automatically.
 - `THIRD_PARTY_NOTICES.md`: source and copyright/license attribution for adapted code.
 - `scripts/opportunity_card.py`: local optional card creation, validation, result append, search.
-- `scripts/install_bundle.py`: explicit local installation of this Skill plus official stable game-exp/H5/Godot components.
+- `scripts/install_bundle.py`: explicit local **pinned-compatible** installation, whole-selected-Harness restore attempt on failure, post-install check; no silent latest upgrade.
+- `scripts/check_bundle.py`: offline/online **read-only** version, release pin, provenance and installed-file checks.
+- `compatibility.lock.json`: exact published upstream baselines and declared static-only assurance; not a proof of live integration.
+- `references/version-check.md`: call-time check, statuses, release watch and failure handling.
 - `scripts/handoff_bundle.py`: read-only opportunity hypothesis handoff; never a Manifest or lifecycle action.
 - `scripts/link_result.py`: append operator-reported provenance after actual observation; not a trusted Review.
 - `references/validation-cycle.md`: optional preregistered human-behavior measurement, exact cohort/denominator, pretest digest and non-authoritative result comparison.

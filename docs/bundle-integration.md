@@ -1,4 +1,4 @@
-# game-opportunity v0.3.0 integration contract
+# game-opportunity v0.4.1 main-Skill integration and version policy
 
 Main intent routing and delegated lifecycle are defined in `skills/game-opportunity/references/full-workflow.md`.
 
@@ -9,7 +9,9 @@ Main intent routing and delegated lifecycle are defined in `skills/game-opportun
 - ChatGPT web Skill upload does **not** run a script or import a second Skill. Provide manual game-exp installation/connection instructions instead of claiming automatic installation.
 - The game-exp installer's version/Doctor/preflight and all human gates remain mandatory. Its official stable release can lag its `main` documentation; the opportunity Skill carries the bridging ordinary research context.
 - A local card/result is **NOT_PERSISTED** cross-Harness until an authorized durable store and exact version are actually verified. The public source repository is not a default place to upload user data.
-- Bundle installer `--plan` and `--check` are offline. `--check` proves only selected file presence, not a working MCP or trusted Ledger.
+- Bundle installer `--plan` and legacy `--check` are offline. `--check` proves presence only; `--verify` and standalone `check_bundle.py` check locally installed pins/digests, with optional `--online` published-version freshness. Neither replaces official game-exp Doctor or cross-host behavioral tests.
+- Published game-exp and H5/Godot semver tags are explicitly pinned in the main Skill's `compatibility.lock.json`. A newer upstream release means a candidate for review, never an implicit update. The watch workflow may open a **draft candidate PR**, not update the lock itself.
+- Installation snapshots the selected Harness's managed targets and tries whole-bundle rollback. `ROLLBACK_INCOMPLETE` is an explicit failure to be resolved manually. ChatGPT web Skill import still cannot run local installation.
 
 ## No schema change
 

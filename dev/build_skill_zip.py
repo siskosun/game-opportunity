@@ -14,9 +14,9 @@ RESOURCES = [
     "references/routing.md", "references/evidence.md", "references/validation.md",
     "references/handoff.md", "references/safety.md",
     "references/discovery.md", "references/comparable-games.md", "references/player-choice.md",
-    "references/china-channels.md", "references/full-workflow.md", "references/validation-cycle.md",
+    "references/china-channels.md", "references/full-workflow.md", "references/validation-cycle.md", "references/version-check.md",
     "scripts/opportunity_card.py", "scripts/import_evidence.py", "scripts/adapters/steam_reviews.py",
-    "scripts/install_bundle.py", "scripts/handoff_bundle.py", "scripts/link_result.py", "scripts/validation_cycle.py",
+    "scripts/install_bundle.py", "scripts/check_bundle.py", "compatibility.lock.json", "scripts/handoff_bundle.py", "scripts/link_result.py", "scripts/validation_cycle.py",
     "templates/opportunity-card.md", "LICENSE", "THIRD_PARTY_NOTICES.md", "VERSION",
 ]
 
