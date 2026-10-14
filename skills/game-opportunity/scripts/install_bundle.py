@@ -357,9 +357,12 @@ def bundle_install(home: pathlib.Path, harness: str, release: str | None = None)
         _verify_source_version(root, tag)
         # Includes canonical game-exp runtime/MCP config and H5/Godot targets.
         snapshot = BundleSnapshot(_controlled_paths(home, selected))
+        phase = "OFFICIAL_INSTALLER"
         try:
             run_official_installer(root, home, harness, tag)
+            phase = "MAIN_SKILL_COPY"
             install_skill_targets(home, selected)
+            phase = "POSTINSTALL_VERIFY"
             verified = check_bundle.evaluate(home, selected, online=True)
             if verified["status"] != "CURRENT":
                 raise BundleInstallError("POSTINSTALL_VERIFICATION_FAILED: " + verified["status"])
@@ -367,8 +370,9 @@ def bundle_install(home: pathlib.Path, harness: str, release: str | None = None)
             try:
                 snapshot.restore()
             except Exception as rollback_exc:
-                raise BundleInstallError(f"ROLLBACK_INCOMPLETE: bundle failed ({type(exc).__name__}); restore failed ({rollback_exc})") from rollback_exc
-            raise BundleInstallError(f"ROLLED_BACK: bundle install failed ({type(exc).__name__}); previous managed paths restored") from exc
+                raise BundleInstallError(f"ROLLBACK_INCOMPLETE_{phase}: bundle failed ({type(exc).__name__}); restore failed ({type(rollback_exc).__name__})") from rollback_exc
+            # Fixed phase and type only, no raw exception message or local paths.
+            raise BundleInstallError(f"ROLLED_BACK_{phase}: bundle failed ({type(exc).__name__}); previous managed paths restored") from exc
         finally:
             snapshot.close()
     return {"status": "PASS", "bundle": "game-opportunity + game-exp + official H5/Godot companions",
