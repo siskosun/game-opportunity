@@ -27,3 +27,18 @@ No automated scraping, recruitment, ad spending, fake-door launch, realtime debu
 3. Real prompts run repeatedly on available hosts against expected routing, with differences recorded.
 4. 3-5 true project opportunities compared with the pre-written no-exploration baseline.
 5. No protected game-exp domain objects change as a side effect of card management.
+
+## v0.2.0 implementation scope (China-local + no radar)
+
+- No-radar source discovery, direct/indirect/ordinary/failure peer comparison and explicit player attention/choice/outcome are opt-in research methods, not new lifecycle steps.
+- Domestic platform guide is an **optional route** when targeting mainland Chinese players. No default audience, genre, device, session length, distribution channel or employer filter.
+- Imitation-speed pressure is a scenario to test, not an AI market score or a permanent defensibility requirement.
+- Offline UTF-8 CSV/JSON/JSONL reviews produce only exploratory aggregate keyword mentions and denominators in gitignored local-evidence/. Keyword hits are not confirmed unmet needs; no access to private platform data or real outreach.
+- `adapters/steam_reviews.py` is only for explicit, capped, public Steam requests. Reviewed portions of SteamReviewFetch are adapted under MIT with a complete THIRD_PARTY_NOTICES.md, and licenses are included inside the importable Skill ZIP.
+- A successful source/CI test does not imply live Steam connectivity or correct routing on every host. Keep P0-C real-case evidence separate.
+
+## Acceptance check
+
+- Zero-radar / no-network / Chinese indie / premium single-run / copycat / Chinese platform access-blocked behavior cases should not force social or mobile assumptions.
+- Unit tests cover encoding, dedup, no-raw-export, empty/invalid input, output overwrite denial, Steam bounded pagination and explicit network consent.
+- Linux and Windows CI, ZIP validator/CRC, source Git comparison, public repo privacy boundary and per-license credit must all pass before merge.

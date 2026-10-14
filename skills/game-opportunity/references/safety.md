@@ -11,3 +11,8 @@ Costs, advertising budgets, subscriptions, third-party API charges, and public p
 ## Public source repository
 
 The canonical code repository, `siskosun/game-opportunity`, is PUBLIC. Keep real unpublished research and personal or proprietary analytics out of its Git history. An opportunity card may be committed there only after an explicit per-card public-publication decision and redaction review. Local `opportunities/OPP-*.md` drafts are ignored by Git by default; forcing a Git add or creating a GitHub file is a deliberate publication action. Never infer that permission to edit a repository equals permission to publish research.
+
+
+## Local evidence tooling
+
+`import_evidence.py` and the optional Steam adapter create only aggregate results in `local-evidence/` by default (Git-ignored). These are not ready-to-publish findings: a narrow sample or counts from a few users can still be sensitive. A human must review each aggregate before any public disclosure. `steam_reviews.py` requires `--confirm-public-fetch`, bounds pages, reviews and delay, never requires private cookies, and must stop when Steam denies or rate-limits access. No domestic-platform access bypass, identity-level analytics export or third-party user list gathering.

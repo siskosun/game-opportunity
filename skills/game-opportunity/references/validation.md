@@ -8,7 +8,7 @@ Choose a test because it can change a real development decision, not because it 
 | Will the audience voluntarily express interest? | Landing-page interest or ethically conducted recruitment | Real sustained play |
 | Does the mechanic produce the intended behavior? | One graybox H5 PROBE or minimal Godot kernel | Broad market reach |
 | Does the intended experience work? | Real uncoached playtest, observed inputs and failures | Population-level enjoyment |
-| Do players come back or invite others? | Repeated session opportunities with actual alternatives | Attributable causal impact without controls |
+| Is the player outcome delivered? | For repeatable games, actual voluntary return or invitation; for one-shot games, completion, recommendation or willingness to pay | Incremental causal impact without appropriate comparison |
 | Is acquisition plausible? | Small human-approved channel test with matched denominators | Long-term unit economics from click-through alone |
 
 For each recommendation state:
@@ -23,3 +23,7 @@ When important uncertainty is not cheaply falsifiable, say so and select a stron
 For an original mechanic, make a small observation of player-experience difference the first goal, without requiring demand documentation as a prior gate.
 
 For several conceptual variants, propose a short list and one decisive discriminating test. Do not silently generate multiple game-exp experiments, independent H5 PROBE histories, or multiple repos.
+
+## Players have more choices than attention
+
+Separate **noticed -> voluntarily chosen -> outcome delivered** rather than using one funnel metric as proof of another. Consult `references/player-choice.md` when a proposed game competes with many similar products or its core mechanic can be copied quickly. For a narrative buy-to-play game, value completion and recommendation rather than default D7 retention. If a copycat scenario is central, explicitly test which player-visible advantage survives, or whether a time-bounded novelty launch is itself the intended model.

@@ -20,3 +20,11 @@ Use the strongest evidence actually accessible and relevant to the target player
 Never cite a secondary summary as though its original dataset were inspected. If one population (e.g. an existing social game platform) is used to hypothesize about another (e.g. external casual-game market), name the transfer assumption. A small convenience sample cannot establish general market size, pay propensity, or product-market fit.
 
 A useful opportunity needs some answer to: player, situation, substitute, unaddressed friction, and plausible access channel. Missing elements may remain unknown; focus next experiment on the one that most affects investment choice.
+
+## Data you can inspect safely
+
+For supplied local CSV/JSON/JSONL review files, `scripts/import_evidence.py` emits **only aggregated topic mentions, explicit vote polarity counts, basic denominators, and source metadata** to a `local-evidence/` path excluded from public Git. This is exploratory keyword analysis, not validated sentiment or unmet-demand detection: keyword matches (including negated phrases) can be wrong, and the sample may be systematically selected. Require original source and sampling details for stronger claims. Do not publish or upload raw reviews, player identities or internal cohorts from the public Skill repository.
+
+For public Steam review retrieval, `scripts/adapters/steam_reviews.py` is an **optional, explicit** and tightly bounded adapter. Do not invoke it without user-authorized external data access; it does not collect Chinese app-store or private platform data. For domestic platforms, use actual official accessible pages or user-authorized exports; an inaccessible platform is `UNKNOWN`, not a cue to bypass access restrictions.
+
+Read `references/china-channels.md` only for China-local decisions, `references/comparable-games.md` for tradeoff comparisons and `references/discovery.md` when research input is absent.

@@ -11,3 +11,10 @@ __pycache__/
 
 # Opportunity drafts are private by default; deliberately use git add -f after review.
 opportunities/OPP-*.md
+
+# Local evidence must not accidentally enter the public repository.
+local-evidence/
+evidence/raw/
+# Generated bundle, test files and personal notes
+dist/
+*.summary.json
