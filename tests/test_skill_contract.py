@@ -12,7 +12,9 @@ class SkillContractTests(unittest.TestCase):
         for relative in (
             "references/routing.md", "references/evidence.md", "references/validation.md",
             "references/handoff.md", "references/safety.md", "templates/opportunity-card.md",
-            "scripts/opportunity_card.py",
+            "scripts/opportunity_card.py", "references/discovery.md", "references/comparable-games.md",
+            "references/player-choice.md", "references/china-channels.md", "scripts/import_evidence.py",
+            "scripts/adapters/steam_reviews.py", "THIRD_PARTY_NOTICES.md",
         ):
             self.assertTrue((SKILL / relative).is_file(), relative)
             self.assertIn(relative, body)
@@ -34,6 +36,31 @@ class SkillContractTests(unittest.TestCase):
         self.assertIn("opportunities/OPP-*.md", gitignore)
         self.assertNotIn("siskosun/game-opportunities", skill)
         self.assertNotIn("siskosun/game-opportunities", readme)
+
+
+    def test_open_source_license_and_credit_bundled(self):
+        for name in ("LICENSE", "THIRD_PARTY_NOTICES.md"):
+            self.assertTrue((ROOT / name).is_file(), name)
+            self.assertTrue((SKILL / name).is_file(), name)
+        notice = (SKILL / "THIRD_PARTY_NOTICES.md").read_text(encoding="utf-8")
+        self.assertIn("Seafoodsz/SteamReviewFetch", notice)
+        self.assertIn("Copyright (c) 2025 Seafoodsz", notice)
+        self.assertIn("MIT License", notice)
+        self.assertIn("No source files copied", notice)
+        ignore = (ROOT / ".gitignore").read_text(encoding="utf-8")
+        for pattern in ("local-evidence/", "opportunities/OPP-*.md", "dist/"):
+            self.assertIn(pattern, ignore)
+
+    def test_china_is_optional_and_no_radar_gate(self):
+        skill = (SKILL / "SKILL.md").read_text(encoding="utf-8")
+        discovery = (SKILL / "references/discovery.md").read_text(encoding="utf-8")
+        china = (SKILL / "references/china-channels.md").read_text(encoding="utf-8")
+        for phrase in ("no default platform", "no-input discovery", "rapid-copy"):
+            self.assertIn(phrase, skill)
+        self.assertIn("No game-radar feed", discovery)
+        self.assertIn("not", china.lower())
+        self.assertIn("TapTap", china)
+        self.assertIn("mainland Chinese", china)
 
     def test_route_table_coverage(self):
         source = (SKILL / "references/routing.md").read_text(encoding="utf-8")

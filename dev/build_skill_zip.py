@@ -13,7 +13,10 @@ RESOURCES = [
     "agents/openai.yaml",
     "references/routing.md", "references/evidence.md", "references/validation.md",
     "references/handoff.md", "references/safety.md",
-    "scripts/opportunity_card.py", "templates/opportunity-card.md",
+    "references/discovery.md", "references/comparable-games.md", "references/player-choice.md",
+    "references/china-channels.md",
+    "scripts/opportunity_card.py", "scripts/import_evidence.py", "scripts/adapters/steam_reviews.py",
+    "templates/opportunity-card.md", "LICENSE", "THIRD_PARTY_NOTICES.md",
 ]
 
 

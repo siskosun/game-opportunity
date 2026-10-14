@@ -1,11 +1,11 @@
 ---
 name: game-opportunity
-description: "Research game-market opportunities, unmet player needs, target audiences, alternatives, and acquisition hypotheses; evaluate novel game ideas against potential players; choose the cheapest decisive validation before committing to prototype development. Chinese triggers: 游戏市场机会, 玩家未满足需求, 值得开发的游戏, 最小成本验证. Use for questions like \"what game is worth making\", \"who needs this mechanic\", \"market opportunity\", \"unmet player needs\", and \"how can I cheaply validate this game idea\". Do not use for implementing H5 or Godot games, bug fixing, gameplay tuning, or managing game-exp experiment lifecycle."
+description: "Explore promising game opportunities and player needs in China or global markets, even with no game radar or existing data; compare games and substitutes, assess why players will notice, choose and value a game under rapid imitation, and design the cheapest decisive market or gameplay validation. Use for 游戏市场机会, 游戏选题, 玩家需求, 中国游戏市场, 玩家选择, 最小成本验证, 游戏竞品分析, 游戏创意快速复制. Do not use for direct H5/Godot implementation, bug fixing, gameplay tuning, or game-exp lifecycle operations."
 ---
 
 # Game Opportunity
 
-Help the user decide **what to test next, and why**, not how to generate more prototypes. Output a compact opportunity card in Chinese by default. Two legitimate entries: **demand-driven** (players and unmet needs first) and **creative-driven** (unfamiliar mechanic first). Existing market-demand proof is never mandatory for creative exploration.
+Help a developer determine **what to test, what player choice it would change, and why**. Prioritize evidence and low-cost decisions over idea volume or AI attractiveness scores. Default to concise Chinese. Support demand-driven and creative-driven exploration without requiring prior market proof for original mechanics.
 
 ## Route before doing work
 
@@ -13,11 +13,12 @@ Read `references/routing.md` when intent overlaps another game Skill. Explicit b
 
 ## Research and decide
 
-1. Recover the user's existing idea, constraints, player evidence, and prior explicit decisions. Do not repeat known questions. Choose demand-driven or creative-driven. Use available online research and authorized first-party data only when these improve the decision. See `references/evidence.md`.
-2. Distinguish sourced observation, inference, assumption, and unknown. Cite actual origin and collection date for material market claims; never fabricate market size, reviews, app ranking, player behavior, or access to private data. Popularity alone is not an entry opportunity; examine substitutes, supply gaps, and plausible player acquisition. Missing evidence remains unknown.
-3. Generate alternatives only when they could distinguish a decision. Do not launch parallel projects from conceptual variants. Identify the **single most decision-relevant uncertainty** and the cheapest test capable of resolving it. A concept/intent click is not retention, repeat use, or monetization evidence. See `references/validation.md`.
-4. Produce one small card with exactly three mandatory decision sections: `Key uncertainty`, `Cheapest useful validation`, `Continue / adjust / stop conditions`. Optional context may describe players, substitutes, source links, channel access, variants, and cost assumptions. Format it using `templates/opportunity-card.md` with stable `opportunity_id`. Never turn the card into a new Manifest or PROBE schema.
-5. Offer one recommended next action with the evidence limitation. No automatic promotion, investment, outreach, repository creation, paid campaigns, participant tests, or gameplay implementation. Read `references/safety.md` before proposing any user-facing research intervention.
+1. Recover stated constraints, current player evidence and previous decisions; do not ask again. Choose demand-driven or creative-driven, with no default platform, genre, monetization, employer, short-session rule or radar dependency. For no-input discovery and source selection read `references/discovery.md`; if targeting mainland China read `references/china-channels.md`.
+2. Contrast realistic direct/indirect player substitutes, ordinary or unsuccessful comparables and quality aspirations. Use `references/comparable-games.md`. Mark `OBSERVED / INFERRED / HYPOTHESIS / UNKNOWN`, actual sources and dates; missing data stays unknown. Check whether the proposed game has a plausible player-discovery route instead of equating trending products with reachable demand.
+3. Answer three **separate** questions when decision-relevant: why players will **notice** it, **choose** it over an alternative, and obtain the promised **experience outcome** (repeat/complete/recommend as appropriate). Examine a rapid-copy scenario without mandating a permanent moat; see `references/player-choice.md`. Do not manufacture numeric market scores or claim real-world player behavior from AI judgment.
+4. Identify one pivotal uncertainty and the cheapest **credible** test that could change investment. Concept interest is not active choice, replay or monetization; user-supplied CSV/JSON summaries are selected samples, not census estimates. See `references/validation.md` and `references/evidence.md`. Alternatives remain proposals, never auto-spawn multiple experiments.
+5. Produce a brief opportunity card with the same **three** mandatory decision sections: `Key uncertainty`, `Cheapest useful validation`, `Continue / adjust / stop conditions`, using `templates/opportunity-card.md` and an opportunity ID. All new comparisons, attention/choice/experience notes and copy scenarios stay **optional context**, not a new required schema.
+6. Recommend one next action with its evidence limitations. No automatic publication, repository creation, spending, human contact, promotion, or gameplay implementation. For user-facing interventions consult `references/safety.md`.
 
 ## Persist and hand off without duplicate authority
 
@@ -38,4 +39,11 @@ This Skill does not require a repository or `PROJECT_READY` for a read-only brai
 - `references/handoff.md`: opportunity -> PROBE/Godot -> game-exp without duplicate hypotheses.
 - `references/safety.md`: participant research, advertising, permissions and privacy.
 - `templates/opportunity-card.md`: minimal card and append-only result area.
+- `references/discovery.md`: independent zero-data discovery and optional source adapters.
+- `references/comparable-games.md`: direct/indirect/unsuccessful comparisons; no uncalibrated revenue multipliers.
+- `references/player-choice.md`: attention, voluntary choice, experience outcomes and imitation pressure.
+- `references/china-channels.md`: optional mainland-China distribution/test paths, not a gate for other users.
+- `scripts/import_evidence.py`: offline UTF-8 CSV/JSON exploratory review-theme aggregation; no raw text export.
+- `scripts/adapters/steam_reviews.py`: opt-in, bounded Steam review sampling; do not run automatically.
+- `THIRD_PARTY_NOTICES.md`: source and copyright/license attribution for adapted code.
 - `scripts/opportunity_card.py`: local optional card creation, validation, result append, search.

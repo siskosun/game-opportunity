@@ -44,3 +44,29 @@ Cards have three mandatory decision sections: key uncertainty, minimum useful va
 - Integrations already merged: [game-exp #53](https://github.com/siskosun/game-exp/pull/53), [H5 #9](https://github.com/siskosun/h5-game-prototype-agent/pull/9), [Godot #17](https://github.com/siskosun/godot-prototype-studio/pull/17).
 
 Run 3-5 real opportunity explorations before claiming market uplift. Track what would have been built without this workflow and whether the earliest decisive evidence changed the investment/validation choice.
+
+## v0.2.0: China-local, no-radar opportunity exploration
+
+The Skill now supports **zero-input discovery** without requiring any game radar, paid analytics or existing repository. China-specific channels (TapTap, mini-games, Chinese Steam players and creator communities) are **optional** and do not impose mobile, casual, 2D, social or ad-funded assumptions on every game.
+
+The research focus is: actual player substitutes and unsuccessful peers; whether a game will be **noticed, voluntarily chosen and deliver the promised outcome**; what happens if the mechanic is quickly copied; and the least costly evidence that could change a decision. For finite single-purchase games, completion, satisfaction or recommendation may matter more than retention.
+
+### Offline review evidence import (no API key or network)
+
+```bash
+python skills/game-opportunity/scripts/import_evidence.py --input examples/synthetic-reviews.csv --platform synthetic_example --sampling-notes "Synthetic demo; not player evidence"
+```
+
+Supports UTF-8/UTF-8-BOM CSV, JSON and JSONL. Produces **only** exploratory aggregate topic mentions, explicit polarity counts, duplicate/empty counts and provenance in `local-evidence/` (gitignored). No author IDs or review text are exported. Keyword mentions (including negated ones) are not validated pain points or market size; review the underlying authorized data. Existing results are not overwritten.
+
+### Optional bounded public Steam review sampling
+
+```bash
+python skills/game-opportunity/scripts/adapters/steam_reviews.py --appid 123456 --language schinese --max-pages 2 --max-reviews 100 --confirm-public-fetch
+```
+
+Requires explicit user-approved access to public reviews; defaults to at most 2 pages/100 records (hard limits: 5 pages/500 records), minimum 1-second gap. Stops on 403/429 or other refusal, uses no private credentials, and writes only local aggregate results. The Steam adapter adapts parts of the MIT-licensed [SteamReviewFetch](https://github.com/Seafoodsz/SteamReviewFetch), with author permission and copyright reproduced in [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md). No Chinese-platform scraping or paid data connection is bundled.
+
+Run `python -m unittest discover -s tests -v` and `python dev/build_skill_zip.py`. GitHub CI checks Linux **and Windows**. Static tests and mocked requests do **not** prove cross-host Skill routing or live external API access; those evaluations and the 3–5 real P0-C cases remain separate.
+
+See [LICENSE](LICENSE) and [third-party notices](THIRD_PARTY_NOTICES.md) before redistribution. Public opportunity cards still require explicit per-card approval; private evidence needs an authorized private store.
