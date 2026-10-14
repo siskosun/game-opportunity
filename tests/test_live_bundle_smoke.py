@@ -57,6 +57,16 @@ class LiveBundleSmokeTests(unittest.TestCase):
         self.assertEqual(ctx.exception.reason, "INSTALL_INSTALLER_FAILED")
         self.assertNotIn("TOKEN_DO_NOT_LEAK", str(ctx.exception))
 
+    def test_rollback_phase_is_enumerated_without_leaking_child_error(self):
+        proc = mock.Mock(returncode=1, stdout=json.dumps({
+            "status": "FAIL", "error": "ROLLED_BACK_OFFICIAL_INSTALLER: SECRET_CREDENTIAL"
+        }), stderr="SECRET")
+        with mock.patch.object(smoke.subprocess, "run", return_value=proc):
+            with self.assertRaises(smoke.SmokeFailure) as ctx:
+                smoke.run("codex", confirmed=True)
+        self.assertEqual(ctx.exception.reason, "INSTALL_ROLLED_BACK_OFFICIAL_INSTALLER")
+        self.assertNotIn("SECRET", str(ctx.exception))
+
     def test_postcheck_reports_only_allowlisted_components_and_states(self):
         proc = mock.Mock(returncode=0, stdout=json.dumps({"status": "PASS", "result": "INSTALLED_VERIFIED_PIN"}), stderr="SECRET")
         status = {"status": "INCOMPATIBLE", "harnesses": [{"components": {
