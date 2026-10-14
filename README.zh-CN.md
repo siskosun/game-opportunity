@@ -10,13 +10,14 @@
 
 ### 配套安装（Windows Cursor/Codex/Qoder）
 
-本地执行单条安装命令，可配套安装当前 Skill 和 **game-exp 最新正式稳定版**。game-exp 的**原生安装器**还会在同一个 Harness 中同步 H5、Godot Skills，以及 game-exp MCP/运行时。必须有 Python 3.11+、联网访问 GitHub、满足 game-exp 的本地安装前置条件；对后续正式实验还需 gh/GitHub 相应权限。
+本地执行一次明确授权的安装命令，可配套安装当前 Skill 和 **兼容锁批准的 game-exp 正式稳定版**，以及配套 H5/Godot。未经联合检查的新版本不会自动安装。game-exp 的**原生安装器**还会在同一个 Harness 中同步 H5、Godot Skills，以及 game-exp MCP/运行时。必须有 Python 3.11+、联网访问 GitHub、满足 game-exp 的本地安装前置条件；对后续正式实验还需 gh/GitHub 相应权限。
 
 先取得公开源码（首次安装）：
 
 ```powershell
 git clone https://github.com/siskosun/game-opportunity.git
 cd game-opportunity
+python -m pip install uv
 ```
 
 在仓库根目录执行预览（离线、无写入）：
@@ -29,10 +30,10 @@ python skills/game-opportunity/scripts/install_bundle.py --harness cursor --plan
 
 ```powershell
 python skills/game-opportunity/scripts/install_bundle.py --harness cursor --json
-python skills/game-opportunity/scripts/install_bundle.py --harness cursor --check --json
+python skills/game-opportunity/scripts/install_bundle.py --harness cursor --verify --online --json
 ```
 
-将 `cursor` 替换为 `codex` 或 `qoder`。默认只影响指定 Harness。仅当用户明确要求同步所有三个本地 Harness 时，才使用 `--harness all`。安装器拒绝从 game-exp 的未发布 `main` 自动安装，不会自动降级。可通过 `--game-exp-release v1.5.2` 指定已发布稳定版，且仍遵循其降级保护。
+将 `cursor` 替换为 `codex` 或 `qoder`。默认只影响指定 Harness。仅当用户明确要求同步所有三个本地 Harness 时，才使用 `--harness all`。安装器拒绝从 game-exp 的未发布 `main` 自动安装，不会自动降级。当前兼容锁固定 game-exp `v1.5.3`；若显式使用 `--game-exp-release`，必须指定与当前锁完全一致的 `v1.5.3`，且仍遵循其降级保护。
 
 **ChatGPT 网页端**：导入本 Skill ZIP 并不会自动执行安装脚本，也不能替用户往 Windows 写入 game-exp 的运行时或 MCP 配置。需要用户另行在支持的环境中安装/连接 game-exp，或在网页端通过支持的安装入口分别导入可用的 Skill；没有可信生命周期工具时，仍能研究机会，但不能伪造正式实验操作。
 
@@ -158,7 +159,7 @@ python skills/game-opportunity/scripts/validation_cycle.py assess --help
 
 ## v0.4.1：调用前检查版本与兼容性
 
-本地版本检查器：[check_bundle.py](skills/game-opportunity/scripts/check_bundle.py)。已发布版本锁：[compatibility.lock.json](skills/game-opportunity/compatibility.lock.json)。在历史 v0.4.1 版本中锁定 **game-exp v1.5.2 正式 Release、H5 v0.2.3 语义标签、Godot v1.0.5 语义标签**；这些来源在 GitHub 上可核对，但锁定版本只通过静态契约与工程测试，**尚未完成真人端到端实测**。另外三个技能的 `main` 含有尚未正式发布的兼容说明；它们不会因 GitHub 合并自动安装到用户设备。
+本地版本检查器：[check_bundle.py](skills/game-opportunity/scripts/check_bundle.py)。已发布版本锁：[compatibility.lock.json](skills/game-opportunity/compatibility.lock.json)。在历史 v0.4.1 版本中锁定 **game-exp v1.5.2 正式 Release、H5 v0.2.3 语义标签、Godot v1.0.5 语义标签**；这些来源在 GitHub 上可核对，但锁定版本只通过静态契约与工程测试，**尚未完成真人端到端实测**。本节仅保留历史基线供参考；当前三个配套技能的兼容说明已经正式发布，准确版本见上方 v0.4.2 章节。源代码合并仍不会自动升级用户设备。
 
 在进入由其他技能执行的本地原型或受管实验前，运行只读检查：
 
