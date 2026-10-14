@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "bundle_version": "0.4.2",
+  "bundle_version": "0.4.3",
   "policy": "released-pins-only",
   "assurance": "STATIC_CONTRACT_CI_ONLY_NOT_END_TO_END_CERTIFIED",
   "generated_date": "2026-10-14",

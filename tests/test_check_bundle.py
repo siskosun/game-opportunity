@@ -44,7 +44,7 @@ class BundleVersionChecks(unittest.TestCase):
         return fake_lock
 
     def test_lock_valid_and_three_published_pin_shas(self):
-        self.assertEqual(self.lock["bundle_version"], "0.4.2")
+        self.assertEqual(self.lock["bundle_version"], (ROOT / "skills/game-opportunity/VERSION").read_text(encoding="utf-8").strip())
         self.assertEqual(self.lock["policy"], "released-pins-only")
         self.assertEqual(set(self.lock["components"]), set(checker.COMPONENTS))
         for entry in self.lock["components"].values():
