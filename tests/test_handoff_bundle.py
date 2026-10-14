@@ -83,7 +83,7 @@ class HandoffBundleTests(unittest.TestCase):
             args = ["--card", str(card), "--result-id", "round-1", "--observation", "3 of 12 voluntarily rejoined", "--source", "local playtest summary", "--limitations", "convenience sample n=12", "--experiment-id", "EXP-42", "--candidate-id", "CAND-99", "--source-sha", "b" * 40, "--probe-id", "probe-1"]
             with contextlib.redirect_stdout(io.StringIO()):
                 self.assertEqual(link.main(args), 0)
-            text = card.read_text()
+            text = card.read_text(encoding="utf-8")
             self.assertIn("round-1", text)
             self.assertIn("OPERATOR_REPORTED_NOT_LEDGER_VERIFIED", text)
             self.assertIn("EXP-42", text)
