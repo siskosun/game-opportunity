@@ -185,12 +185,28 @@ def _load_observation(path: pathlib.Path) -> dict:
     if not path.is_file() or path.stat().st_size > MAX_BYTES:
         raise ValidationError("Input missing or exceeds 2 MiB; supply one anonymized aggregate row")
     if path.suffix.lower() == ".csv":
-        with path.open("r", encoding="utf-8-sig", newline="") as stream:
-            rows = list(csv.DictReader(stream))
-    elif path.suffix.lower() == ".json":
         try:
-            data = json.loads(path.read_text(encoding="utf-8-sig"))
+            with path.open("r", encoding="utf-8-sig", newline="") as stream:
+                reader = csv.DictReader(stream)
+                header = reader.fieldnames or []
+                if len(set(header)) != len(header):
+                    raise ValidationError("Duplicate CSV header; refusing ambiguous aggregate")
+                rows = list(reader)
+        except csv.Error as exc:
+            raise ValidationError("Malformed CSV aggregate") from exc
+    elif path.suffix.lower() == ".json":
+        def _no_duplicate_keys(pairs: list[tuple[str, object]]) -> dict:
+            result = {}
+            for key, value in pairs:
+                if key in result:
+                    raise ValidationError("Duplicate JSON object key; refusing ambiguous aggregate")
+                result[key] = value
+            return result
+        try:
+            data = json.loads(path.read_text(encoding="utf-8-sig"), object_pairs_hook=_no_duplicate_keys)
         except (ValueError, UnicodeError) as exc:
+            if isinstance(exc, ValidationError):
+                raise
             raise ValidationError("Invalid JSON aggregate") from exc
         rows = data if isinstance(data, list) else [data]
     else:

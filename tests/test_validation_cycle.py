@@ -214,6 +214,25 @@ class ValidationCycleTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "Ambiguous"):
             vc.assess(self.plan_file, src)
 
+    def test_duplicate_csv_column_names_are_not_silently_overridden(self):
+        self.make_plan()
+        row = self.make_observation()
+        with self.input.open("w", encoding="utf-8-sig", newline="") as stream:
+            stream.write(",".join(list(row) + ["numerator"]) + "\n")
+            stream.write(",".join(str(row[x]) for x in row) + ",0\n")
+        with self.assertRaisesRegex(ValueError, "Duplicate CSV header"):
+            vc.assess(self.plan_file, self.input)
+
+    def test_duplicate_json_keys_are_not_silently_overridden(self):
+        self.make_plan()
+        row = self.make_observation()
+        src = self.root / "ambiguous.json"
+        text = json.dumps(row, ensure_ascii=False)
+        text = text.replace('"numerator": 12', '"numerator": 12, "numerator": 0')
+        src.write_text(text, encoding="utf-8")
+        with self.assertRaisesRegex(ValueError, "Duplicate JSON object key"):
+            vc.assess(self.plan_file, src)
+
     def test_file_size_limit_and_format(self):
         self.make_plan()
         big = self.root / "too-big.json"
