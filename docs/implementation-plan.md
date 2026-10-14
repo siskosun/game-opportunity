@@ -42,3 +42,12 @@ No automated scraping, recruitment, ad spending, fake-door launch, realtime debu
 - Zero-radar / no-network / Chinese indie / premium single-run / copycat / Chinese platform access-blocked behavior cases should not force social or mobile assumptions.
 - Unit tests cover encoding, dedup, no-raw-export, empty/invalid input, output overwrite denial, Steam bounded pagination and explicit network consent.
 - Linux and Windows CI, ZIP validator/CRC, source Git comparison, public repo privacy boundary and per-license credit must all pass before merge.
+
+## v0.3.0: Main Skill and companion install orchestration
+
+- `game-opportunity` is the user-facing orchestrator for the complete idea->evidence->optional prototype->human choice journey. Direct H5/Godot development still bypasses opportunity research; protected experiment management still belongs only to game-exp.
+- For explicit local Cursor/Codex/Qoder install, run `scripts/install_bundle.py`; its stable game-exp Release source and **official installer** own the MCP/runtime/config and companion H5/Godot sync. The bundle installer then installs the main Skill into the same selected Harness. Default single-Harness scope; explicit `all` only.
+- Importing Skill ZIP to ChatGPT web never invokes a local installer or adds a second Skill automatically; manual authorization is required.
+- `scripts/handoff_bundle.py` emits untrusted read-only provenance with card hash and same-vs-new-stage question, never a game-exp Manifest or protected Ledger event. `scripts/link_result.py` appends operator-reported result provenance, never Review or selection.
+- Stable release may predate `main` handoff documentation. game-opportunity's full-workflow guide bridges ordinary research context, with a strict official Manifest template and game-exp version/Doctor check at each managed experiment.
+- CI/unit tests cover offline plan, blocked install, host isolation, malicious archive paths, read-only research handoff, reported remote source status, changed-stage requirement, and result evidence append. Host behavior evaluation / a live full workflow is still required.

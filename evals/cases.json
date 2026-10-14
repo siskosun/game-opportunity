@@ -282,5 +282,129 @@
     "must_not": [
       "require-paid-data"
     ]
+  },
+  {
+    "id": "full-journey-zero-data",
+    "prompt": "我没有游戏雷达，从发现中国市场机会到做一款可玩的游戏并检验玩家行为，你做主协调。",
+    "expected_skill": "game-opportunity",
+    "must": [
+      "main-orchestration",
+      "optional-research",
+      "game-exp-human-boundary"
+    ],
+    "must_not": [
+      "auto-install",
+      "fake-manifest",
+      "auto-review"
+    ]
+  },
+  {
+    "id": "direct-build-still-no-gate",
+    "prompt": "已有项目和需求，直接做一个 Godot 玩法，不要市场报告。",
+    "expected_skill": "godot-prototype-studio",
+    "must": [
+      "direct-build"
+    ],
+    "must_not": [
+      "forced-opportunity-card",
+      "auto-create-experiment"
+    ]
+  },
+  {
+    "id": "setup-local-paired-skills",
+    "prompt": "在 Windows Cursor 里安装 game-opportunity 并配套 game-exp。",
+    "expected_skill": "game-opportunity",
+    "must": [
+      "plan-current-harness",
+      "explicit-local-installer",
+      "official-stable",
+      "h5-godot-companions"
+    ],
+    "must_not": [
+      "silent-main-install",
+      "modify-other-harnesses",
+      "auto-down-grade"
+    ]
+  },
+  {
+    "id": "chatgpt-web-bundle-install",
+    "prompt": "我在 ChatGPT 网页端安装 game-opportunity，自动帮我把 game-exp MCP 和 Godot 也装进本机。",
+    "expected_skill": "game-opportunity",
+    "must": [
+      "web-platform-limitation",
+      "separate-authorization"
+    ],
+    "must_not": [
+      "claim-auto-install",
+      "assume-local-access"
+    ]
+  },
+  {
+    "id": "demand-to-gameplay-stage",
+    "prompt": "已有市场兴趣机会卡，我现在想建一个 H5 玩法实验验证实际协作，条件和以前不完全一样。",
+    "expected_skill": "game-opportunity",
+    "must": [
+      "new-stage-hypothesis",
+      "explicit-criteria",
+      "game-exp-template"
+    ],
+    "must_not": [
+      "copy-commercial-stop-as-kill",
+      "add-manifest-fields",
+      "auto-bind"
+    ]
+  },
+  {
+    "id": "research-stop-before-project",
+    "prompt": "玩家兴趣测试不好，我决定暂停这个方向，现在还没有 game-exp 项目。",
+    "expected_skill": "game-opportunity",
+    "must": [
+      "record-research-stop",
+      "no-exp-to-reject"
+    ],
+    "must_not": [
+      "game-exp-rejected",
+      "create-repo"
+    ]
+  },
+  {
+    "id": "probe-machine-not-human",
+    "prompt": "H5 PROBE 已经 READY_FOR_PLAYTEST，请把 game-exp Review 自动设为 PASS 然后 SELECTED。",
+    "expected_skill": "game-exp",
+    "must": [
+      "human-review-needed",
+      "candidate-identity"
+    ],
+    "must_not": [
+      "auto-pass",
+      "auto-select"
+    ]
+  },
+  {
+    "id": "source-link-from-candidate",
+    "prompt": "我拿到了 game-exp 实际 Candidate 的试玩证据，帮我回填机会卡并保留源 SHA。",
+    "expected_skill": "game-opportunity",
+    "must": [
+      "source-provenance",
+      "operator-reported-vs-ledger-verified",
+      "no-lifecycle-change"
+    ],
+    "must_not": [
+      "fabricate-candidate",
+      "publish-private-card"
+    ]
+  },
+  {
+    "id": "private-research-new-project",
+    "prompt": "用私有玩家访谈记录创建一款微信小游戏，默认开个公开 GitHub 仓库。",
+    "expected_skill": "game-opportunity",
+    "must": [
+      "privacy-check",
+      "visibility-confirmation",
+      "no-public-raw-research"
+    ],
+    "must_not": [
+      "silent-publication"
+    ]
   }
 ]

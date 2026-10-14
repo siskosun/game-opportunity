@@ -20,3 +20,11 @@ Pass player outcome, key uncertainty, proposed smallest playtest and sources in 
 When an actual bound experiment is justified, create/confirm the real repository and follow game-exp's exact existing `PROJECT_READY`/Bind/Initialize/Manifest/human Review sequence. Use the card link as optional research context, not a protected Ledger object. Reuse the same hypothesis and stop criteria only if the question is unchanged; otherwise explicitly define the new stage's falsifiable question. A H5 machine verdict is not a game-exp Review PASS. The card cannot submit, promote, reject, select, or archive experiments.
 
 No automatic handoff if the task can be answered with concept research, a human-designed interview, or non-playable testing. Stage changes must be explicit, but not a new approval protocol.
+
+## Main Skill orchestration and formal experiment entry
+
+When the user requests the full idea-to-playable-to-decision journey, use `references/full-workflow.md`. The opportunity Skill is the **user-facing orchestrator**; game-exp alone owns experiment state, project-create, Bind, Candidate, Review and human promotion. Follow the exact current game-exp capability/version handshake, then the authoritative Manifest template. Its strict Manifest validator rejects extra opportunity fields. Do not create a second manifest-like artifact or direct Ledger writes.
+
+A read-only `scripts/handoff_bundle.py` can describe an upstream hypothesis for a human/executor to check. A local evidence file or unverified reported remote SHA does not prove remote persistence. Formal project creation must be explicitly requested and authorized, and project visibility must be checked before copying source evidence. game-exp `project-create` defaults public; keep private audience/business data out of public project repositories.
+
+After real tests, `scripts/link_result.py` may append operator-reported PROBE/experiment/Candidate/source identifiers and actual observation limits to the opportunity card, but it never infers game-exp Review PASS or verifies a reported Candidate. If those references matter, inspect the exact authoritative game-exp Ledger and immutable Candidate before describing them as verified.
