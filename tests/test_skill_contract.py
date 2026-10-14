@@ -82,7 +82,7 @@ class SkillContractTests(unittest.TestCase):
         for text in ("NOT_PERSISTED", "market", "Candidate", "review", "game-exp"):
             self.assertIn(text.casefold(), (handoff + guide).casefold())
         self.assertIn("Complete idea -> validate", routing)
-        self.assertIn("0.4.1", (SKILL / "VERSION").read_text())
+        self.assertIn("0.4.2", (SKILL / "VERSION").read_text())
 
     def test_player_validation_never_creates_game_exp_authority(self):
         skill = (SKILL / "SKILL.md").read_text(encoding="utf-8")

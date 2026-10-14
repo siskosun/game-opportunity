@@ -1,37 +1,37 @@
 {
   "schema_version": 1,
-  "bundle_version": "0.4.1",
+  "bundle_version": "0.4.2",
   "policy": "released-pins-only",
   "assurance": "STATIC_CONTRACT_CI_ONLY_NOT_END_TO_END_CERTIFIED",
   "generated_date": "2026-10-14",
-  "notes": "Pins are verified public tags, not guarantees of integrated real-world testing. Do not auto-advance pins on upstream releases. Strict game-exp human/Doctor gates remain authoritative.",
+  "notes": "Published pins verified by GitHub ref and Skill Git blob. A cross-OS ephemeral installed bundle smoke is required by CI, but this does not verify real user Harness settings, project Doctor, or player playtests. Do not auto-advance pins.",
   "components": {
     "game-exp": {
       "repository": "siskosun/game-exp",
       "channel": "published_release",
-      "version": "1.5.2",
-      "tag": "v1.5.2",
-      "commit_sha": "e636ff694cc5eaba195cbf47c9221a87c0d66f4e",
-      "skill_git_blob_sha1": "d819ed4ec6e3d2fa6a079d0f18a71274b2756f35",
-      "min_version": "1.5.2"
+      "version": "1.5.3",
+      "tag": "v1.5.3",
+      "commit_sha": "4dbe94f36e83fff68b28eb685857c54f9be6b718",
+      "skill_git_blob_sha1": "db3d215178f1ac8ace26d25fbca6e5c8ee7123b0",
+      "min_version": "1.5.3"
     },
     "h5-game-prototype-agent": {
       "repository": "siskosun/h5-game-prototype-agent",
       "channel": "semver_tag",
-      "version": "0.2.3",
-      "tag": "v0.2.3",
-      "commit_sha": "108669b200b62d6bcdee7c509a3140d5ba039c37",
+      "version": "0.2.4",
+      "tag": "v0.2.4",
+      "commit_sha": "1aeefeb0cfaa601c08e0d88a47fd0d93c7aa7640",
       "skill_git_blob_sha1": "4638a677a1a42fb3b5d8b68f500d65584fda8594",
-      "min_version": "0.2.3"
+      "min_version": "0.2.4"
     },
     "godot-prototype-studio": {
       "repository": "siskosun/godot-prototype-studio",
       "channel": "semver_tag",
-      "version": "1.0.5",
-      "tag": "v1.0.5",
-      "commit_sha": "4bdae9db97b4159fdc461c4718125aabd0cd68b1",
-      "skill_git_blob_sha1": "16867c2c362dd11bc4daa5cefbe82e33940e054f",
-      "min_version": "1.0.5"
+      "version": "1.0.6",
+      "tag": "v1.0.6",
+      "commit_sha": "340490601d49325e70823e377782bf51aec0bf69",
+      "skill_git_blob_sha1": "8807972b32dd7e9686c4e0b9fcb9e1f77d7ca001",
+      "min_version": "1.0.6"
     }
   }
 }

@@ -97,9 +97,15 @@ Use `codex` or `qoder` as appropriate. This runs the **official published-stable
 Use `scripts/handoff_bundle.py` for ordinary non-authoritative research context when a real playable is requested. game-exp's real current project/Manifest/Bind controls all official experiments. After verified observation, `scripts/link_result.py` records operator-reported provenance in the ordinary opportunity card; it does not assert a Review outcome or mutate the protected Ledger.
 
 
+## v0.4.2: published four-Skill release combination
+
+The validated pinned **published** combination is game-exp **v1.5.3**, H5 **v0.2.4**, and Godot **v1.0.6**. Each pin references an exact Git commit and the installed Skill entrypoint's Git blob identity. This replaces the historical v0.4.1 baseline below. The main Skill itself is released as **v0.4.2**.
+
+For a read-only freshness/integrity check, use `python skills/game-opportunity/scripts/check_bundle.py --harness codex --online --json`. For an explicit installation, review the plan and run `install_bundle.py --harness codex --json`. The GitHub matrix workflow `.github/workflows/pinned-bundle-smoke.yml` installs all four released components in a disposable HOME and checks both local source identities and current published tags, without any game repository, human test, or actual customer environment. A successful check is **not** game-exp Doctor or proof of a game idea's market demand.
+
 ## v0.4.1: check the other three Skills before invoking them
 
-Published-baseline lock: [compatibility.lock.json](skills/game-opportunity/compatibility.lock.json). The verified-as-published tags are **game-exp v1.5.2 (stable GitHub Release)**, **H5 v0.2.3 (semver tag)** and **Godot v1.0.5 (semver tag)**. These are version/source pins with static CI evidence, **not** proof of a complete live end-to-end run. Upstream `main` may be ahead of these tags, and game-opportunity itself has not yet been formally released at this point.
+Historical v0.4.1 lock (superseded by v0.4.2): [compatibility.lock.json](skills/game-opportunity/compatibility.lock.json). The verified-as-published tags are **game-exp v1.5.2 (stable GitHub Release)**, **H5 v0.2.3 (semver tag)** and **Godot v1.0.5 (semver tag)**. These are version/source pins with static CI evidence, **not** proof of a complete live end-to-end run. Upstream `main` may be ahead of these tags, and game-opportunity itself has not yet been formally released at this point.
 
 Before delegating local gameplay work:
 

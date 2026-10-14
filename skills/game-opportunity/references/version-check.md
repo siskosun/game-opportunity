@@ -1,4 +1,4 @@
-# Four-Skill version and compatibility gate (v0.4.1)
+# Four-Skill version and compatibility gate (v0.4.2)
 
 Use before **delegating** local work to game-exp/H5/Godot or opening an actual bound experiment. Do not force remote version checking on ordinary research, commentary or an explicit low-risk read-only question. This is not a hidden execution hook: Skill ZIP import alone cannot force another program to run. Local Python execution permission is required.
 
