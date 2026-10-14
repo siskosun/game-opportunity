@@ -19,6 +19,7 @@ ROOT = Path(__file__).resolve().parents[1]
 SCRIPT_ROOT = ROOT / "skills/game-opportunity/scripts"
 sys.path.insert(0, str(SCRIPT_ROOT))
 import check_bundle  # noqa: E402
+import install_bundle  # noqa: E402 - shared allowlist only; no install side effects
 
 VALID_STATES = frozenset({"CURRENT", "INCOMPATIBLE", "UNVERIFIED", "NOT_INSTALLED", "UNKNOWN"})
 VALID_COMPONENTS = frozenset({"game-opportunity", "game-exp", "h5-game-prototype-agent", "godot-prototype-studio"})
@@ -75,18 +76,7 @@ def run(harness: str = "codex", *, confirmed: bool = False) -> dict:
                     if "ROLLED_BACK_" + phase in error:
                         stage += "_" + phase
                         if phase == "OFFICIAL_INSTALLER":
-                            for code in ("UV_NOT_FOUND", "WINDOWS_PATH", "WINDOWS_FILE_LOCK",
-                                         "WINDOWS_ACCESS", "COMPANION_SYNC", "PYTHON_MODULE",
-                                         "RELEASE_SOURCE", "CONFIG", "NETWORK", "FILESYSTEM",
-                                         "INSTALLER_UNKNOWN", "CHILD_OUTPUT_NOT_JSON",
-                                         "ARGPARSE_REJECTED", "TLS_FAILURE", "NETWORK_TIMEOUT",
-                                         "INVALID_ARGUMENT", "PYTHON_TRACEBACK_MODULENOTFOUNDERROR",
-                                         "PYTHON_TRACEBACK_IMPORTERROR", "PYTHON_TRACEBACK_TYPEERROR",
-                                         "PYTHON_TRACEBACK_ATTRIBUTEERROR", "PYTHON_TRACEBACK_VALUEERROR",
-                                         "PYTHON_TRACEBACK_OSERROR", "PYTHON_TRACEBACK_FILENOTFOUNDERROR",
-                                         "PYTHON_TRACEBACK_UNICODEERROR",
-                                         "PYTHON_TRACEBACK_PERMISSIONERROR",
-                                         "PYTHON_TRACEBACK_SYNTAXERROR", "PYTHON_TRACEBACK_OTHER"):
+                            for code in install_bundle.OFFICIAL_FAILURE_CATEGORIES:
                                 if "ROLLED_BACK_OFFICIAL_INSTALLER_" + code in error:
                                     stage += "_" + code
                                     break
