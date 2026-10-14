@@ -4,6 +4,7 @@ Do not compete for prompts merely because they mention "game", "prototype", or "
 
 | User wants | Primary skill / route | Expected artifact | What NOT to do |
 |---|---|---|---|
+| Complete idea -> validate -> build -> human playtest -> decide journey | game-opportunity as main coordinator; delegate managed lifecycle to game-exp | Opportunity card (optional), human-approved project/experiment, verified playable, feedback link | Do not auto-run installers or bypass human gates |
 | Discover underserved players, a China-local or global game opportunity, target segment, or acquisition path **with no existing radar/data** | game-opportunity | Opportunity card and next cheapest test | No repo/PROBE/game without approval |
 | Find potential players for an original mechanic, decide how to validate the idea | game-opportunity | Creative-driven opportunity card | Do not demand existing market proof |
 | Full external source collection or long market report | Research capability, with game-opportunity summarizing decision when requested | Cited research | Avoid duplicate "deep research" Skill |
@@ -19,5 +20,6 @@ Ambiguity rules:
 - "Is this fun?" with a supplied playable: design human playtest and send implementation work to selected engine. Do not synthesize fun from AI scoring.
 - "I have a mechanic; who would want it?": game-opportunity first.
 - "Quickly test my web mechanic": H5 PROBE first.
+- "从游戏想法一路做到试玩版并评估": game-opportunity coordinates the complete journey, but delegates project creation, trusted experiment state, Candidate/Review and selection to game-exp. Explicit build requests do not require marketing discovery.
 - "Create a new official experiment": game-exp first, then specialized executor after Bind; supplied opportunity evidence is optional.
 - Never force opportunity cards before ordinary patch, bugfix, code review, gameplay tuning, or a direct user-approved prototype implementation.

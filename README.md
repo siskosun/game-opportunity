@@ -70,3 +70,29 @@ Requires explicit user-approved access to public reviews; defaults to at most 2 
 Run `python -m unittest discover -s tests -v` and `python dev/build_skill_zip.py`. GitHub CI checks Linux **and Windows**. Static tests and mocked requests do **not** prove cross-host Skill routing or live external API access; those evaluations and the 3–5 real P0-C cases remain separate.
 
 See [LICENSE](LICENSE) and [third-party notices](THIRD_PARTY_NOTICES.md) before redistribution. Public opportunity cards still require explicit per-card approval; private evidence needs an authorized private store.
+
+## v0.3.0: one main Skill, trusted game-exp companions
+
+Game Opportunity is the **user-facing coordinator** from opportunity discovery to optional playable experiment and feedback. **game-exp** remains the exclusive authoritative lifecycle manager; H5 and Godot executors remain responsible for implementation and playtests. There is no mandatory market-research gate for direct development.
+
+For **explicit local** installation in Cursor, Codex or Qoder, clone the public repository and plan before executing:
+
+```bash
+git clone https://github.com/siskosun/game-opportunity.git
+cd game-opportunity
+```
+
+Then:
+
+```bash
+python skills/game-opportunity/scripts/install_bundle.py --harness cursor --plan
+python skills/game-opportunity/scripts/install_bundle.py --harness cursor --json
+python skills/game-opportunity/scripts/install_bundle.py --harness cursor --check --json
+```
+
+Use `codex` or `qoder` as appropriate. This runs the **official published-stable game-exp installer**, which also installs/syncs the selected Harness's H5 and Godot companions, then installs game-opportunity. It requires working GitHub connectivity. `--harness all` requires an explicit choice. `--check` is local presence only, not game-exp Doctor; check the official game-exp status/health before experimenting.
+
+**Importing `skill.zip` to ChatGPT web cannot automatically execute installers, install game-exp, or configure a local MCP runtime.** Set up game-exp separately in an authorized supported environment; without it, game-opportunity can still produce read-only research. No public opportunity-card or private user evidence is uploaded automatically. See [full workflow](skills/game-opportunity/references/full-workflow.md).
+
+Use `scripts/handoff_bundle.py` for ordinary non-authoritative research context when a real playable is requested. game-exp's real current project/Manifest/Bind controls all official experiments. After verified observation, `scripts/link_result.py` records operator-reported provenance in the ordinary opportunity card; it does not assert a Review outcome or mutate the protected Ledger.
+

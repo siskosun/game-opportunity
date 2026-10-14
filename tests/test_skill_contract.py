@@ -67,6 +67,33 @@ class SkillContractTests(unittest.TestCase):
         for phrase in ("game-opportunity", "h5-game-prototype-agent", "godot-prototype-studio", "game-exp", "research"):
             self.assertIn(phrase, source)
 
+    def test_main_orchestration_no_shadow_authority(self):
+        skill = (SKILL / "SKILL.md").read_text(encoding="utf-8")
+        guide = (SKILL / "references/full-workflow.md").read_text(encoding="utf-8")
+        handoff = (SKILL / "references/handoff.md").read_text(encoding="utf-8")
+        routing = (SKILL / "references/routing.md").read_text(encoding="utf-8")
+        for rel in ("references/full-workflow.md", "scripts/install_bundle.py", "scripts/handoff_bundle.py", "scripts/link_result.py"):
+            self.assertIn(rel, skill)
+            self.assertTrue((SKILL / rel).is_file())
+        for text in ("official game-exp stable Release installer", "ChatGPT web", "cannot", "experiment-template", "no experiment", "human"):
+            self.assertIn(text.casefold(), (guide + skill).casefold())
+        for text in ("NOT_PERSISTED", "market", "Candidate", "review", "game-exp"):
+            self.assertIn(text.casefold(), (handoff + guide).casefold())
+        self.assertIn("Complete idea -> validate", routing)
+        self.assertIn("0.3.0", (SKILL / "VERSION").read_text())
+
+    def test_no_unsafe_auto_install_claims(self):
+        zh = (ROOT / "README.zh-CN.md").read_text(encoding="utf-8")
+        eng = (ROOT / "README.md").read_text(encoding="utf-8")
+        installer = (SKILL / "scripts/install_bundle.py").read_text(encoding="utf-8")
+        for text in ("--plan", "--check", "--harness all", "ChatGPT"):
+            self.assertIn(text, zh + eng)
+        self.assertIn("--channel", installer)
+        self.assertIn("stable", installer)
+        self.assertIn("install_harnesses.py", installer)
+        self.assertNotIn('"--channel", "development"', installer)
+        self.assertIn("PARTIAL_INSTALL", installer)
+
     def test_behavior_cases_are_balanced(self):
         cases = json.loads((ROOT / "evals/cases.json").read_text(encoding="utf-8"))
         self.assertGreaterEqual(len(cases), 10)

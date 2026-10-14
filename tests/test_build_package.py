@@ -16,7 +16,11 @@ class PackagingTests(unittest.TestCase):
             path = builder.build(pathlib.Path(td) / "skill.zip")
             with ZipFile(path) as z:
                 files = z.namelist()
-                self.assertEqual(len(files), 17)
+                self.assertEqual(len(files), 22)
+                self.assertIn("game-opportunity/scripts/install_bundle.py", files)
+                self.assertIn("game-opportunity/references/full-workflow.md", files)
+                self.assertIn("game-opportunity/scripts/handoff_bundle.py", files)
+                self.assertIn("game-opportunity/scripts/link_result.py", files)
                 self.assertEqual(sum(n.endswith("/SKILL.md") for n in files), 1)
                 self.assertNotIn("game-opportunity/scripts/example.py", files)
                 self.assertTrue(z.testzip() is None)

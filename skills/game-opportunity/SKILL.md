@@ -1,15 +1,15 @@
 ---
 name: game-opportunity
-description: "Explore promising game opportunities and player needs in China or global markets, even with no game radar or existing data; compare games and substitutes, assess why players will notice, choose and value a game under rapid imitation, and design the cheapest decisive market or gameplay validation. Use for 游戏市场机会, 游戏选题, 玩家需求, 中国游戏市场, 玩家选择, 最小成本验证, 游戏竞品分析, 游戏创意快速复制. Do not use for direct H5/Godot implementation, bug fixing, gameplay tuning, or game-exp lifecycle operations."
+description: "Lead an end-to-end game opportunity-to-playable-to-evidence workflow using game-exp as the trusted experiment controller; explore promising game opportunities and player needs in China or global markets, even with no game radar or existing data; compare games and substitutes, assess why players will notice, choose and value a game under rapid imitation, and design the cheapest decisive market or gameplay validation. Use for 游戏市场机会, 游戏选题, 玩家需求, 中国游戏市场, 玩家选择, 最小成本验证, 游戏竞品分析, 游戏创意快速复制. Do not use for direct H5/Godot implementation, bug fixing, gameplay tuning, or game-exp lifecycle operations."
 ---
 
 # Game Opportunity
 
-Help a developer determine **what to test, what player choice it would change, and why**. Prioritize evidence and low-cost decisions over idea volume or AI attractiveness scores. Default to concise Chinese. Support demand-driven and creative-driven exploration without requiring prior market proof for original mechanics.
+Serve as the **main user-facing Skill** for complete game exploration: idea / evidence / cheap validation / optional playable / actual player result / next decision. Delegate trusted experiment lifecycle to game-exp and source implementation to H5/Godot; never create a shadow control plane. Help a developer determine **what to test, what player choice it would change, and why**. Prioritize evidence and low-cost decisions over idea volume or AI attractiveness scores. Default to concise Chinese. Support demand-driven and creative-driven exploration without requiring prior market proof for original mechanics.
 
 ## Route before doing work
 
-Read `references/routing.md` when intent overlaps another game Skill. Explicit build/change/debug/delivery requests go to H5 Game Prototype Agent or Godot Prototype Studio. Requests to inspect/review/select/archive a bound experiment go to game-exp. Use this Skill for opportunity discovery, player fit, and choice of a validation method. Do not force this Skill on ordinary new-game builds. For vague "make something like X", default to development; clarify only one material ambiguity. Do not spawn multiple Agents or automatically create repositories or experiments.
+Read `references/full-workflow.md` for complete idea-to-playable journeys and `references/routing.md` for intent clashes. Direct build/change/debug/delivery without broader opportunity intent goes to H5 Game Prototype Agent or Godot Prototype Studio. Requests to inspect/review/select/archive a bound experiment go to game-exp. Use this Skill for opportunity discovery, player fit, and choice of a validation method. Do not force this Skill on ordinary new-game builds. For vague "make something like X", default to development; clarify only one material ambiguity. Do not spawn multiple Agents or automatically create repositories or experiments.
 
 ## Research and decide
 
@@ -19,6 +19,14 @@ Read `references/routing.md` when intent overlaps another game Skill. Explicit b
 4. Identify one pivotal uncertainty and the cheapest **credible** test that could change investment. Concept interest is not active choice, replay or monetization; user-supplied CSV/JSON summaries are selected samples, not census estimates. See `references/validation.md` and `references/evidence.md`. Alternatives remain proposals, never auto-spawn multiple experiments.
 5. Produce a brief opportunity card with the same **three** mandatory decision sections: `Key uncertainty`, `Cheapest useful validation`, `Continue / adjust / stop conditions`, using `templates/opportunity-card.md` and an opportunity ID. All new comparisons, attention/choice/experience notes and copy scenarios stay **optional context**, not a new required schema.
 6. Recommend one next action with its evidence limitations. No automatic publication, repository creation, spending, human contact, promotion, or gameplay implementation. For user-facing interventions consult `references/safety.md`.
+
+## Install the full local bundle on user request only
+
+A Skill ZIP upload never installs game-exp by itself. For explicit **local** bundle installation in Cursor, Codex or Qoder, read `references/full-workflow.md` and guide the user through `scripts/install_bundle.py --harness <cursor|codex|qoder> --plan` and then the authorized install command. The launcher invokes the **official game-exp stable Release installer** (which itself synchronizes H5 and Godot Skills in the selected Harness), then installs this Skill. Never execute installers without user instruction; do not silently use game-exp main or downgrade. ChatGPT web cannot run local installers, automatically install additional Skills, or supply a trusted MCP runtime; require separate supported user installation/connection and state the limitation. Check actual game-exp status/version/Doctor before a bound experiment, not merely file presence.
+
+## Full workflow handoff and feedback
+
+For a user who wants the entire route from idea to game, keep the opportunity card optional when already building. When the user decides to build, choose the same-question vs new-stage hypothesis as `references/handoff.md` describes; optionally generate a **non-authoritative** JSON with `scripts/handoff_bundle.py`. The research bundle is not a game-exp Manifest. For managed work, use game-exp's project-create/status/experiment-template/Bind/handoff and official human gates; never create fake experiment identities or add opportunity IDs to its strict Manifest. When independently verified player evidence exists, link it back to the ordinary card with `scripts/link_result.py` and clear limitations, without setting game-exp states. See `references/full-workflow.md` for the full route and failure cases.
 
 ## Persist and hand off without duplicate authority
 
@@ -34,6 +42,7 @@ This Skill does not require a repository or `PROJECT_READY` for a read-only brai
 ## References
 
 - `references/routing.md`: cross-Skill routing and borderline cases.
+- `references/full-workflow.md`: main-skill orchestration, bundle installation, authoritative experiment handling and feedback.
 - `references/evidence.md`: market evidence, source quality and uncertainty.
 - `references/validation.md`: cheap experiments and decision criteria.
 - `references/handoff.md`: opportunity -> PROBE/Godot -> game-exp without duplicate hypotheses.
@@ -47,3 +56,6 @@ This Skill does not require a repository or `PROJECT_READY` for a read-only brai
 - `scripts/adapters/steam_reviews.py`: opt-in, bounded Steam review sampling; do not run automatically.
 - `THIRD_PARTY_NOTICES.md`: source and copyright/license attribution for adapted code.
 - `scripts/opportunity_card.py`: local optional card creation, validation, result append, search.
+- `scripts/install_bundle.py`: explicit local installation of this Skill plus official stable game-exp/H5/Godot components.
+- `scripts/handoff_bundle.py`: read-only opportunity hypothesis handoff; never a Manifest or lifecycle action.
+- `scripts/link_result.py`: append operator-reported provenance after actual observation; not a trusted Review.

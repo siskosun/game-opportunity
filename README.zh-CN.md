@@ -4,9 +4,57 @@
 
 这是独立的游戏机会探索技能，不属于 game-exp 的可信生命周期控制层。它帮助开发者判断潜在玩家、未满足需求、候选玩法，以及下一步成本最低且能影响决策的验证方式。
 
+## v0.3.0：主技能与完整工作流
+
+**game-opportunity 是面向用户的主入口**：从想法、玩家研究、低成本验证，一直到用户明确要求创建可玩实验、实际试玩、复盘。game-exp 继续独占可信实验管理，H5/Godot 负责开发和执行；不会增加第二套 Manifest 或 Ledger。直接要求修 Bug、修改已有原型、开发 H5/Godot 时，不强制先做市场研究。
+
+### 配套安装（Windows Cursor/Codex/Qoder）
+
+本地执行单条安装命令，可配套安装当前 Skill 和 **game-exp 最新正式稳定版**。game-exp 的**原生安装器**还会在同一个 Harness 中同步 H5、Godot Skills，以及 game-exp MCP/运行时。必须有 Python 3.11+、联网访问 GitHub、满足 game-exp 的本地安装前置条件；对后续正式实验还需 gh/GitHub 相应权限。
+
+先取得公开源码（首次安装）：
+
+```powershell
+git clone https://github.com/siskosun/game-opportunity.git
+cd game-opportunity
+```
+
+在仓库根目录执行预览（离线、无写入）：
+
+```powershell
+python skills/game-opportunity/scripts/install_bundle.py --harness cursor --plan
+```
+
+确认后安装（实际下载并安装依赖）：
+
+```powershell
+python skills/game-opportunity/scripts/install_bundle.py --harness cursor --json
+python skills/game-opportunity/scripts/install_bundle.py --harness cursor --check --json
+```
+
+将 `cursor` 替换为 `codex` 或 `qoder`。默认只影响指定 Harness。仅当用户明确要求同步所有三个本地 Harness 时，才使用 `--harness all`。安装器拒绝从 game-exp 的未发布 `main` 自动安装，不会自动降级。可通过 `--game-exp-release v1.5.2` 指定已发布稳定版，且仍遵循其降级保护。
+
+**ChatGPT 网页端**：导入本 Skill ZIP 并不会自动执行安装脚本，也不能替用户往 Windows 写入 game-exp 的运行时或 MCP 配置。需要用户另行在支持的环境中安装/连接 game-exp，或在网页端通过支持的安装入口分别导入可用的 Skill；没有可信生命周期工具时，仍能研究机会，但不能伪造正式实验操作。
+
+`--check` 只检查文件是否存在，**不等于** game-exp 的 Doctor、版本握手或可信运行状态通过。安装失败应读取错误信息，重新执行同一命令；若 game-exp 已安装但主 Skill 复制失败，会明确报告 `PARTIAL_INSTALL`，不能视为全部成功。具体操作和边界见 [完整工作流](skills/game-opportunity/references/full-workflow.md)。
+
+### 从机会到试玩、再回到证据
+
+当用户决定进入正式实验时，首先由 game-exp 完成实际仓库初始化和 `PROJECT_READY` 检查，再获取当前 Manifest 模板、由用户确认关键判断后 Bind/Initialize。**市场机会卡不会自动写入 Ledger，也不能替代人类 Review。**
+
+只读生成普通研究交接包：
+
+```powershell
+python skills/game-opportunity/scripts/handoff_bundle.py --card opportunities/OPP-20261014-example.md --stack h5 --mode same-question --confirm-same-question
+```
+
+如果是从市场兴趣验证升级到玩法体验验证，使用 `--mode next-stage --next-hypothesis ... --next-kill ... --reason ...` 明确新的问题，不得默默修改原假设。输出的卡片 SHA、远端来源和证据仅作研究引用，**不是** game-exp Manifest 或可信 Ledger。
+
+完成真实玩家测试后，可用 `scripts/link_result.py` 给机会卡追加观察及实际已知的 PROBE、EXP、Candidate、source SHA 等来源关系。只登记操作员提供的信息，不能自动确认其可信性，不能自动触发 PASS/SELECTED/REJECTED。相关命令与验收见 [完整工作流](skills/game-opportunity/references/full-workflow.md)。
+
 ## 安装与边界
 
-将 `dist/skill.zip` 导入 ChatGPT 或所用开发工具支持的 Skill 安装入口。安装不会创建私有 GitHub 仓库，也不会自动安装或升级 H5、Godot、game-exp。
+将 `dist/skill.zip` 导入支持 Skill 的平台，只会安装 game-opportunity 的指令和脚本。**仅在用户明确运行本地配套安装命令后**，才会安装/升级 game-exp 及其 H5/Godot 伴随 Skills；单独导入 ZIP 不会自动触发安装。
 
 请求直接开发 H5 原型、修改 Godot 游戏、修复 Bug，仍交给对应游戏开发技能；创建、评审、选择或归档正式实验由 game-exp 负责。市场研究不是所有开发任务的强制前置步骤。
 
