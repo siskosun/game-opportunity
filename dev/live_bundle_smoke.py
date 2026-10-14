@@ -78,7 +78,15 @@ def run(harness: str = "codex", *, confirmed: bool = False) -> dict:
                             for code in ("UV_NOT_FOUND", "WINDOWS_PATH", "WINDOWS_FILE_LOCK",
                                          "WINDOWS_ACCESS", "COMPANION_SYNC", "PYTHON_MODULE",
                                          "RELEASE_SOURCE", "CONFIG", "NETWORK", "FILESYSTEM",
-                                         "INSTALLER_UNKNOWN"):
+                                         "INSTALLER_UNKNOWN", "CHILD_OUTPUT_NOT_JSON",
+                                         "ARGPARSE_REJECTED", "TLS_FAILURE", "NETWORK_TIMEOUT",
+                                         "INVALID_ARGUMENT", "PYTHON_TRACEBACK_MODULENOTFOUNDERROR",
+                                         "PYTHON_TRACEBACK_IMPORTERROR", "PYTHON_TRACEBACK_TYPEERROR",
+                                         "PYTHON_TRACEBACK_ATTRIBUTEERROR", "PYTHON_TRACEBACK_VALUEERROR",
+                                         "PYTHON_TRACEBACK_OSERROR", "PYTHON_TRACEBACK_FILENOTFOUNDERROR",
+                                         "PYTHON_TRACEBACK_UNICODEERROR",
+                                         "PYTHON_TRACEBACK_PERMISSIONERROR",
+                                         "PYTHON_TRACEBACK_SYNTAXERROR", "PYTHON_TRACEBACK_OTHER"):
                                 if "ROLLED_BACK_OFFICIAL_INSTALLER_" + code in error:
                                     stage += "_" + code
                                     break
