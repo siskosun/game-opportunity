@@ -36,7 +36,9 @@ def card_text(card_id: str, title: str, route: str) -> str:
         f"## {LABELS['uncertainty']}\nTODO: Specific claim to falsify and target players.\n\n"
         f"## {LABELS['validation']}\nTODO: Cheapest ethical test, observation and denominator.\n\n"
         f"## {LABELS['decision']}\nTODO: Continue / adjust / stop conditions.\n\n"
-        f"## {LABELS['context']}\nOptional: actual sources, dates, alternatives, acquisition path; "\n        f"signal_type (non-exclusive, optional); evidence_dependency (origin/shared cohorts/UNKNOWN, optional); "\n        f"recheck_trigger (event/question, optional; never auto-expiry).\n\n"
+        f"## {LABELS['context']}\nOptional: actual sources, dates, alternatives, acquisition path; "
+        f"signal_type (non-exclusive, optional); evidence_dependency (origin/shared cohorts/UNKNOWN, optional); "
+        f"recheck_trigger (event/question, optional; never auto-expiry).\n\n"
         f"## {LABELS['results']}\n<!-- Append dated results here; never fabricate a test. -->\n"
     )
 
