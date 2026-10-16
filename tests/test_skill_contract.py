@@ -17,6 +17,7 @@ class SkillContractTests(unittest.TestCase):
             "scripts/adapters/steam_reviews.py", "THIRD_PARTY_NOTICES.md",
             "references/validation-cycle.md", "scripts/validation_cycle.py",
             "references/version-check.md", "scripts/check_bundle.py", "compatibility.lock.json",
+            "references/human-ai-judgment.md", "templates/human-ai-judgment.md", "scripts/judgment_log.py",
         ):
             self.assertTrue((SKILL / relative).is_file(), relative)
             self.assertIn(relative, body)

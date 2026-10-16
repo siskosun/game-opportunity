@@ -32,6 +32,10 @@ Choose **one** discriminating uncertainty and one next test even when a candidat
 
 When a signal depends on timing, write a review trigger (dated event or conditional observation), an estimate of the effort **with assumptions**, and what happens if the window closes before a meaningful result. Do not auto-close a card when a generic time-to-live expires. Original/new hypotheses and evidence revisions must remain traceable; actual human Review and game-exp project lifecycle stay separate.
 
+## Optional human-AI divergence before investing in the next test
+
+When developer intuition or experiential knowledge may lead to a different decision, use `references/human-ai-judgment.md` to distinguish the person's original forecast from the AI recommendation **without assuming an independent/blind comparison in one conversation**. An explicit pre-AI view is participant-reported, not an independently timestamped prior. Ask at most one short question if it matters; otherwise skip. Material conflicts need one cheapest discriminating observation and a stated cost ceiling; a person may authorize bounded exploration without market proof, but must not automatically approve spending or game-exp transitions. Record misses by both sides, including expensive human rescues and false rejects. Real playtest observations still require actual evidence under this validation guide.
+
 ## Prospective decision-value check (maintainer, not a product score)
 
 Use `evals/p0c-case-template.md` for **3–5 actual opportunities**, recording *before* each: what the developer would have done without this triage; how much time or money that choice would require; and what result would disconfirm it. Record the actual next action, time to decision-relevant evidence, costs, misses (including promising ideas prematurely screened out), audience overlap and eventual decision. A different recommendation or faster research alone does not prove improved outcomes, and five uncontrolled cases cannot establish a causal effect. Mark unrun cases `NOT_RUN` and contradictions explicitly; do not announce behavioral "PASS" based on static eval fixtures.
