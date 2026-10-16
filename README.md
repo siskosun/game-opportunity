@@ -98,6 +98,10 @@ Use `codex` or `qoder` as appropriate. This runs the **official published-stable
 Use `scripts/handoff_bundle.py` for ordinary non-authoritative research context when a real playable is requested. game-exp's real current project/Manifest/Bind controls all official experiments. After verified observation, `scripts/link_result.py` records operator-reported provenance in the ordinary opportunity card; it does not assert a Review outcome or mutate the protected Ledger.
 
 
+## v0.4.4: independently checking four published Skills
+
+This release coordinates the tested versions of game-exp **v1.5.4**, H5 **v0.2.6** and Godot **v1.0.7** through a published compatibility lock with exact tag commits and Skill-entrypoint digests. Every newly installed Skill has its own read-only version-awareness command and optional dependent-handoff gate. The game-exp v1.5.4 official installer ships an immutable H5/Godot companion snapshot that matches this reviewed combination; it does not chase unvetted newer tags. The full bundle receives a cross-platform ephemeral installation smoke prior to a stable Release. Static-only checks are not a host-by-host proof of routing or human playtesting, and Skill ZIPs cannot self-update without a supporting host.
+
 ## v0.4.3: audit real cross-host evaluation evidence
 
 This release adds the **maintainer-side** `dev/audit_host_evals.py` checker, focused tests, and the [cross-host evidence runbook](evals/HOST-EVIDENCE-GATE.md). It detects contradictory or incomplete manual routing PASS claims before they are reported. It **does not** simulate actual Cursor/Codex/Qoder/ChatGPT behavior; any PASS still requires an independently inspected, authorized real-host transcript.

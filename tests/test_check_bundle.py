@@ -127,7 +127,7 @@ class BundleVersionChecks(unittest.TestCase):
     def test_newer_upstream_tag_is_unapproved_update_not_current(self):
         def fetch(url):
             if "/siskosun/h5-game-prototype-agent/tags?" in url:
-                return [{"name": "v0.2.5"}, {"name": "v0.2.4"}]
+                return [{"name": "v0.2.7"}, {"name": "v0.2.6"}]
             return self._github(url)
         with mock.patch.object(checker, "github_json", side_effect=fetch):
             remote = checker.remote_status(self.lock)
@@ -140,7 +140,7 @@ class BundleVersionChecks(unittest.TestCase):
 
     def test_moved_release_tag_is_detected(self):
         def fetch(url):
-            if "/siskosun/game-exp/git/ref/tags/v1.5.3" in url:
+            if "/siskosun/game-exp/git/ref/tags/v1.5.4" in url:
                 return {"object": {"type": "commit", "sha": "e" * 40}}
             return self._github(url)
         with mock.patch.object(checker, "github_json", side_effect=fetch):
@@ -148,7 +148,7 @@ class BundleVersionChecks(unittest.TestCase):
 
     def test_annotated_tag_dereference(self):
         def fetch(url):
-            if url.endswith("/siskosun/godot-prototype-studio/git/ref/tags/v1.0.6"):
+            if url.endswith("/siskosun/godot-prototype-studio/git/ref/tags/v1.0.7"):
                 return {"object": {"type": "tag", "sha": "a" * 40}}
             if url.endswith("/siskosun/godot-prototype-studio/git/tags/" + "a" * 40):
                 return {"object": {"type": "commit", "sha": self.lock["components"]["godot-prototype-studio"]["commit_sha"]}}

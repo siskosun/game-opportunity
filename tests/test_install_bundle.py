@@ -48,14 +48,14 @@ class BundleInstallerTests(unittest.TestCase):
 
     def test_official_published_semver_selection(self):
         rows = [
-            {"tag_name": "v1.5.3", "draft": False, "prerelease": False},
+            {"tag_name": "v1.5.4", "draft": False, "prerelease": False},
             {"tag_name": "v1.6.0", "draft": False, "prerelease": False},
             {"tag_name": "v9.9.9", "draft": False, "prerelease": True},
             {"tag_name": "main", "draft": False, "prerelease": False},
         ]
         with mock.patch.object(installer, "_get_json", return_value=rows):
             self.assertEqual(installer.select_published_release()["tag_name"], "v1.6.0")
-            self.assertEqual(installer.select_published_release("1.5.3")["tag_name"], "v1.5.3")
+            self.assertEqual(installer.select_published_release("1.5.4")["tag_name"], "v1.5.4")
             with self.assertRaises(installer.BundleInstallError):
                 installer.select_published_release("main")
             with self.assertRaises(installer.BundleInstallError):
@@ -63,9 +63,9 @@ class BundleInstallerTests(unittest.TestCase):
 
     def test_reject_archive_traversal_or_multiple_roots(self):
         for members in (
-            {"game-exp-v1.5.3/../evil.txt": "bad"},
-            {"game-exp-v1.5.3/a": "a", "other-root/x": "b"},
-            {"game-exp-v1.5.3/thing\\else": "bad"},
+            {"game-exp-v1.5.4/../evil.txt": "bad"},
+            {"game-exp-v1.5.4/a": "a", "other-root/x": "b"},
+            {"game-exp-v1.5.4/thing\\else": "bad"},
         ):
             with self.subTest(members=members), tempfile.TemporaryDirectory() as t:
                 p = pathlib.Path(t) / "archive.zip"
@@ -78,7 +78,7 @@ class BundleInstallerTests(unittest.TestCase):
     def test_reject_zip_symlink(self):
         with tempfile.TemporaryDirectory() as t:
             p = pathlib.Path(t) / "archive.zip"
-            entry = zipfile.ZipInfo("game-exp-v1.5.3/evil")
+            entry = zipfile.ZipInfo("game-exp-v1.5.4/evil")
             entry.create_system = 3
             entry.external_attr = (stat.S_IFLNK | 0o777) << 16
             with zipfile.ZipFile(p, "w") as z:
@@ -87,14 +87,14 @@ class BundleInstallerTests(unittest.TestCase):
                 installer._safe_extract(p, pathlib.Path(t) / "dest")
 
     def _fake_source(self, path, dest):
-        root = dest / "game-exp-v1.5.3"
+        root = dest / "game-exp-v1.5.4"
         p = root / "tools/game-exp/install_harnesses.py"
         p.parent.mkdir(parents=True, exist_ok=True)
         p.write_text("# fake official installer source for unit test only\n")
         a = root / "plugins/game-exp/plugin.json"
         a.parent.mkdir(parents=True, exist_ok=True)
-        a.write_text(json.dumps({"version": "1.5.3"}))
-        (root / "INSTALL.json").write_text(json.dumps({"version": "1.5.3", "name": "game-exp"}))
+        a.write_text(json.dumps({"version": "1.5.4"}))
+        (root / "INSTALL.json").write_text(json.dumps({"version": "1.5.4", "name": "game-exp"}))
         return root
 
     def test_paired_installer_harness_selection(self):
@@ -107,7 +107,7 @@ class BundleInstallerTests(unittest.TestCase):
                 def fake_run(root, home_arg, harness, tag):
                     self.assertEqual(root, fake)
                     self.assertEqual(harness, name)
-                    self.assertEqual(tag, "v1.5.3")
+                    self.assertEqual(tag, "v1.5.4")
                     for host in selected:
                         for skill in ("game-exp", "h5-game-prototype-agent", "godot-prototype-studio"):
                             p = home_arg / f".{host}" / "skills" / skill / "SKILL.md"
@@ -115,7 +115,7 @@ class BundleInstallerTests(unittest.TestCase):
                             p.write_text("fake installed by official installer")
                         (home_arg / ".game-exp" / "runtimes" / host).mkdir(parents=True)
                     return {"status": "PASS", "source_channel": "stable", "source_ref": tag}
-                with mock.patch.object(installer, "select_published_release", return_value={"tag_name": "v1.5.3"}), \
+                with mock.patch.object(installer, "select_published_release", return_value={"tag_name": "v1.5.4"}), \
                      mock.patch.object(installer, "_download_archive"), \
                      mock.patch.object(installer, "_safe_extract", return_value=fake), \
                      mock.patch.object(installer, "run_official_installer", side_effect=fake_run), \
@@ -140,11 +140,11 @@ class BundleInstallerTests(unittest.TestCase):
             proc = mock.Mock(
                 returncode=0,
                 stdout=json.dumps({"status": "PASS", "source_channel": "stable",
-                                   "source_ref": "v1.5.3", "next_zh": "已完成安装"}, ensure_ascii=False),
+                                   "source_ref": "v1.5.4", "next_zh": "已完成安装"}, ensure_ascii=False),
                 stderr="",
             )
             with mock.patch.object(installer.subprocess, "run", return_value=proc) as run:
-                result = installer.run_official_installer(root, home, "codex", "v1.5.3")
+                result = installer.run_official_installer(root, home, "codex", "v1.5.4")
             self.assertEqual(result["status"], "PASS")
             env = run.call_args.kwargs["env"]
             self.assertEqual(env["PYTHONIOENCODING"], "utf-8")
@@ -156,7 +156,7 @@ class BundleInstallerTests(unittest.TestCase):
             home = pathlib.Path(t) / "home"
             home.mkdir()
             fake = self._fake_source(None, pathlib.Path(t))
-            with mock.patch.object(installer, "select_published_release", return_value={"tag_name": "v1.5.3"}), \
+            with mock.patch.object(installer, "select_published_release", return_value={"tag_name": "v1.5.4"}), \
                  mock.patch.object(installer, "_download_archive"), \
                  mock.patch.object(installer, "_safe_extract", return_value=fake), \
                  mock.patch.object(installer, "run_official_installer", side_effect=installer.BundleInstallError("fake missing gh")), \

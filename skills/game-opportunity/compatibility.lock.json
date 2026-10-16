@@ -1,37 +1,37 @@
 {
   "schema_version": 1,
-  "bundle_version": "0.4.3",
+  "bundle_version": "0.4.4",
   "policy": "released-pins-only",
   "assurance": "STATIC_CONTRACT_CI_ONLY_NOT_END_TO_END_CERTIFIED",
-  "generated_date": "2026-10-14",
-  "notes": "Published pins verified by GitHub ref and Skill Git blob. A cross-OS ephemeral installed bundle smoke is required by CI, but this does not verify real user Harness settings, project Doctor, or player playtests. Do not auto-advance pins.",
+  "generated_date": "2026-10-16",
+  "notes": "Reviewed published pins: game-exp v1.5.4 includes a frozen H5/Godot companion snapshot with these same exact releases. Bundle smoke on Linux/Windows is required before Release; version and source identity are static evidence, not host routing/Doctor or real playtest attestation.",
   "components": {
     "game-exp": {
       "repository": "siskosun/game-exp",
       "channel": "published_release",
-      "version": "1.5.3",
-      "tag": "v1.5.3",
-      "commit_sha": "4dbe94f36e83fff68b28eb685857c54f9be6b718",
-      "skill_git_blob_sha1": "db3d215178f1ac8ace26d25fbca6e5c8ee7123b0",
-      "min_version": "1.5.3"
+      "version": "1.5.4",
+      "tag": "v1.5.4",
+      "commit_sha": "2c8f761ace1fec98c66390d87bb0477bb88082c8",
+      "skill_git_blob_sha1": "da126807552de0d1b04c1d2bc3b33fac2333f212",
+      "min_version": "1.5.4"
     },
     "h5-game-prototype-agent": {
       "repository": "siskosun/h5-game-prototype-agent",
       "channel": "semver_tag",
-      "version": "0.2.4",
-      "tag": "v0.2.4",
-      "commit_sha": "1aeefeb0cfaa601c08e0d88a47fd0d93c7aa7640",
-      "skill_git_blob_sha1": "4638a677a1a42fb3b5d8b68f500d65584fda8594",
-      "min_version": "0.2.4"
+      "version": "0.2.6",
+      "tag": "v0.2.6",
+      "commit_sha": "fffe6579867e0f4f71c221ed0da836dbe418b835",
+      "skill_git_blob_sha1": "eb6b4cd96d5e7f468426c629d6af4ddd8e3ade3f",
+      "min_version": "0.2.6"
     },
     "godot-prototype-studio": {
       "repository": "siskosun/godot-prototype-studio",
       "channel": "semver_tag",
-      "version": "1.0.6",
-      "tag": "v1.0.6",
-      "commit_sha": "340490601d49325e70823e377782bf51aec0bf69",
-      "skill_git_blob_sha1": "8807972b32dd7e9686c4e0b9fcb9e1f77d7ca001",
-      "min_version": "1.0.6"
+      "version": "1.0.7",
+      "tag": "v1.0.7",
+      "commit_sha": "8c3356ee42c0d8a07fd550eb9caf95bf9a95f61c",
+      "skill_git_blob_sha1": "748f2a7a557a1c58eaa197828d185c13d359dffc",
+      "min_version": "1.0.7"
     }
   }
 }
