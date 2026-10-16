@@ -77,6 +77,20 @@ class HumanAiJudgmentLogTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "cannot skip"):
             self.ai(path)
 
+    def test_material_disagreement_needs_test_and_budget(self):
+        path = self.start()
+        self.ai(path)
+        rc = judge.main(["compare", "--file", str(path), "--materiality", "material", "--why", "Meaningful"])
+        self.assertEqual(rc, 2)
+        self.assertEqual(len(judge.read(path)[0]), 2)
+        rc = judge.main(["compare", "--file", str(path), "--materiality", "material", "--why", "Meaningful",
+                         "--discriminating-test", "Observe rematch choice", "--cost-ceiling", "No paid traffic"])
+        self.assertEqual(rc, 0)
+
+    def test_private_default_not_an_unknown_project_git_directory(self):
+        self.assertIn(".game-opportunity", str(judge.DEFAULT_PRIVATE_DIR))
+        self.assertIn("private-evidence", str(judge.DEFAULT_PRIVATE_DIR))
+
     def test_no_overwrite_and_out_of_order(self):
         path = self.start()
         before = path.read_bytes()

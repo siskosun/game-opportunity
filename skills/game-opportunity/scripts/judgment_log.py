@@ -12,6 +12,7 @@ import datetime as dt
 import hashlib
 import importlib.util
 import json
+import os
 from pathlib import Path
 import re
 import sys
@@ -21,6 +22,7 @@ BASELINES = ("pre_ai_reported", "post_ai", "unknown", "unavailable")
 OUTCOMES = ("observed", "inconclusive", "not_run")
 CASE_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,40}$")
 MAX_RECORD_BYTES = 256 * 1024
+DEFAULT_PRIVATE_DIR = Path.home() / ".game-opportunity" / "private-evidence"
 
 
 def clean(value: str | None, label: str, required: bool = False) -> str:
@@ -110,14 +112,16 @@ def start(card: Path, case: str, directory: Path, baseline: str,
         raise ValueError("human prediction and original next action required")
     if directory.is_symlink():
         raise ValueError("symlink output directory forbidden")
-    directory.mkdir(parents=True, exist_ok=True)
+    directory.mkdir(parents=True, exist_ok=True, mode=0o700)
     path = directory / f"{ident}--{case}.judgment.jsonl"
     row = event("HUMAN", ident, case, 1, b"", {
         "baseline_type": baseline,
         "human_prediction": prediction,
         "human_next_action": action,
     })
-    with path.open("xb") as writer:
+    # Exclusive creation with private file permissions; never overwrite a prior view.
+    fd = os.open(path, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o600)
+    with os.fdopen(fd, "wb") as writer:
         writer.write(row)
     return path
 
@@ -162,7 +166,7 @@ def main(argv: list[str] | None = None) -> int:
     s = sub.add_parser("start")
     s.add_argument("--card", required=True, type=Path)
     s.add_argument("--case-id", required=True)
-    s.add_argument("--directory", type=Path, default=Path("local-evidence"))
+    s.add_argument("--directory", type=Path, default=DEFAULT_PRIVATE_DIR)
     s.add_argument("--baseline-type", choices=BASELINES, required=True)
     s.add_argument("--human-prediction", default="")
     s.add_argument("--human-next-action", default="")
@@ -202,6 +206,8 @@ def main(argv: list[str] | None = None) -> int:
             })
             print("AI appended: participant-reported, not blind")
         elif args.command == "compare":
+            if args.materiality == "material" and not (args.discriminating_test.strip() and args.cost_ceiling.strip()):
+                raise ValueError("material disagreement requires one proposed test and cost ceiling; use unknown if infeasible")
             append(args.file, "COMPARE", {
                 "materiality": args.materiality, "why": clean(args.why, "why", True),
                 "discriminating_test": clean(args.discriminating_test, "discriminating_test"),
