@@ -98,6 +98,14 @@ Use `codex` or `qoder` as appropriate. This runs the **official published-stable
 Use `scripts/handoff_bundle.py` for ordinary non-authoritative research context when a real playable is requested. game-exp's real current project/Manifest/Bind controls all official experiments. After verified observation, `scripts/link_result.py` records operator-reported provenance in the ordinary opportunity card; it does not assert a Review outcome or mutate the protected Ledger.
 
 
+## v0.4.6: optional human insight and disagreement-to-test loop
+
+This update adds a small **opt-in** process for consequential game-opportunity decisions: preserve the developer's actual pre-AI prediction when one exists, contrast it with the AI's strongest alternative explanation, and turn a material disagreement into **one bounded player observation**. An absent or retrospective human baseline is labeled honestly; a normal single-context AI assessment is **not blind** to earlier human input. Routine research/builds proceed without extra questions or approvals.
+
+A short portable private note and a Python-standard-library offline JSONL recorder are included. The recorder preserves stage order and detects accidental prior-line changes; it cannot prove independent preregistration, consent, source truth or commercial impact. Game-exp Candidate/Review/SELECTED authority and the mandatory opportunity-card sections are unchanged. New tests cover false prior claims, no-human cases, duplicate/modified records, no-playtest cases and unchanged cross-Skill packaging.
+
+Actual human/player field trials remain **NOT_RUN**: the proposed 3–5 opportunity pilot should include agreement, disagreement, mistaken human interventions, false rejections, time cost and real observations before any claimed decision-quality lift. The four published companion pins stay exactly as in v0.4.5.
+
 ## v0.4.5: optional signal triage, source lineage and conditional rechecks
 
 When provided a market signal, game-opportunity now optionally distinguishes five overlapping lenses (player request, played prototype, supply/demand gap, sudden breakout and technology/platform shift). Each lens identifies the most material competing explanation and the smallest observation that could change the developer's decision. Reposted sources, overlapping player cohorts and shared market estimates are not counted as independent demand observations.
