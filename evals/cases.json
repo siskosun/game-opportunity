@@ -569,5 +569,123 @@
     "must_not": [
       "claim-perfect-atomicity"
     ]
+  },
+  {
+    "id": "v045-a-reposted-request",
+    "prompt": "有人在三个论坛发了同一条'求某游戏手机版'的帖子；有三条网址就算三个独立需求源，可以立即立项吗？",
+    "expected_skill": "game-opportunity",
+    "must": [
+      "classify-player-need",
+      "trace-original-author",
+      "do-not-double-count-syndication",
+      "test-voluntary-choice"
+    ],
+    "must_not": [
+      "three-domains-equals-independent-evidence",
+      "auto-project"
+    ]
+  },
+  {
+    "id": "v045-b-jam-prototype",
+    "prompt": "一个游戏 Jam 的双人骰子原型评委评分很高、可玩十分钟；据此能认定商业化成功吗？",
+    "expected_skill": "game-opportunity",
+    "must": [
+      "classify-played-prototype",
+      "distinguish-judge-sample-and-buyer",
+      "validate-missing-stage"
+    ],
+    "must_not": [
+      "jam-rating-equals-market-proof",
+      "force-five-hour-content-rule"
+    ]
+  },
+  {
+    "id": "v045-c-supply-gap",
+    "prompt": "我发现 itch.io 上该标签只有 30 个游戏，觉得一定是蓝海。如何快速验证？",
+    "expected_skill": "game-opportunity",
+    "must": [
+      "classify-supply-gap",
+      "check-whether-demand-exists",
+      "include-unsuccessful-substitutes",
+      "propose-cheapest-discriminator"
+    ],
+    "must_not": [
+      "low-supply-equals-opportunity",
+      "hard-tag-count-gate"
+    ]
+  },
+  {
+    "id": "v045-d-breakout-paid",
+    "prompt": "某个刚火十天的小游戏可能是重投放带起的，我还没确认流量来源。应该两周内直接跟进吗？",
+    "expected_skill": "game-opportunity",
+    "must": [
+      "classify-breakout",
+      "separate-paid-organic",
+      "check-reachable-window",
+      "source-limits"
+    ],
+    "must_not": [
+      "invent-four-week-lifetime",
+      "pretend-organic-retention"
+    ]
+  },
+  {
+    "id": "v045-e-unverified-policy",
+    "prompt": "公众号称微信小游戏新政让我们收入提升15%，但我还没有官方规则和适用范围。要不要立刻做游戏？",
+    "expected_skill": "game-opportunity",
+    "must": [
+      "classify-platform-change",
+      "check-official-effective-date-and-eligibility",
+      "cost-impact-conditional",
+      "no-immediate-project"
+    ],
+    "must_not": [
+      "treat-secondary-number-as-policy",
+      "claim-profit-uplift"
+    ]
+  },
+  {
+    "id": "v045-mixed-signal",
+    "prompt": "一个 Jam 原型刚在短视频爆火，同样的片段被多家媒体转载。我应该做几张机会卡？",
+    "expected_skill": "game-opportunity",
+    "must": [
+      "multiple-nonexclusive-signal-labels",
+      "shared-origin-detection",
+      "one-pivotal-uncertainty",
+      "one-card-optional-context"
+    ],
+    "must_not": [
+      "spawn-parallel-pipelines",
+      "count-reposts-as-replications"
+    ]
+  },
+  {
+    "id": "v045-creative-without-traffic",
+    "prompt": "我想到一个全新的一次性解谜机制，完全找不到搜索量和竞品，但能邀请三个人试玩。必须先证明三个渠道有需求吗？",
+    "expected_skill": "game-opportunity",
+    "must": [
+      "allow-creative-route",
+      "uncoached-experience-test",
+      "optional-signal-label"
+    ],
+    "must_not": [
+      "require-three-channels",
+      "force-revenue-proof-before-prototype",
+      "force-D7"
+    ]
+  },
+  {
+    "id": "v045-time-window-recheck",
+    "prompt": "某平台活动会在下次公告时改规则。我该给机会卡固定四周TTL，到期就自动归档吗？",
+    "expected_skill": "game-opportunity",
+    "must": [
+      "record-conditional-recheck-trigger",
+      "verify-official-policy-status",
+      "no-auto-archive"
+    ],
+    "must_not": [
+      "mandatory-ttl",
+      "silently-rewrite-previous-decision"
+    ]
   }
 ]
