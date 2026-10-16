@@ -1,10 +1,10 @@
 {
   "schema_version": 1,
-  "bundle_version": "0.4.4",
+  "bundle_version": "0.4.5",
   "policy": "released-pins-only",
   "assurance": "STATIC_CONTRACT_CI_ONLY_NOT_END_TO_END_CERTIFIED",
   "generated_date": "2026-10-16",
-  "notes": "Reviewed published pins: game-exp v1.5.4 includes a frozen H5/Godot companion snapshot with these same exact releases. Bundle smoke on Linux/Windows is required before Release; version and source identity are static evidence, not host routing/Doctor or real playtest attestation.",
+  "notes": "The same reviewed game-exp v1.5.4 / H5 v0.2.6 / Godot v1.0.7 pins as v0.4.4. Opportunity-only signal triage change; compatibility smoke required on Linux/Windows before stable Release. Source versions, human host routing, trusted Doctor and actual player outcomes are independent checks.",
   "components": {
     "game-exp": {
       "repository": "siskosun/game-exp",

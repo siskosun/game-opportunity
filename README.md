@@ -98,6 +98,14 @@ Use `codex` or `qoder` as appropriate. This runs the **official published-stable
 Use `scripts/handoff_bundle.py` for ordinary non-authoritative research context when a real playable is requested. game-exp's real current project/Manifest/Bind controls all official experiments. After verified observation, `scripts/link_result.py` records operator-reported provenance in the ordinary opportunity card; it does not assert a Review outcome or mutate the protected Ledger.
 
 
+## v0.4.5: optional signal triage, source lineage and conditional rechecks
+
+When provided a market signal, game-opportunity now optionally distinguishes five overlapping lenses (player request, played prototype, supply/demand gap, sudden breakout and technology/platform shift). Each lens identifies the most material competing explanation and the smallest observation that could change the developer's decision. Reposted sources, overlapping player cohorts and shared market estimates are not counted as independent demand observations.
+
+Opportunity cards retain the original **three mandatory decision sections**; their optional context can note `signal_type`, `evidence_dependency` and `recheck_trigger` without adding a new route, database or automatic TTL. Existing cards parse unchanged, including result append. No blanket thresholds on wishlists, source counts, audience retention, game duration or viral lifespan are introduced.
+
+The patch adds eight behavior-evaluation prompts, targeted offline regression tests and a forward-looking real-case calibration template. The tests passed only as code/static contracts; **actual routing, market impact and 3–5 prospective developer decisions remain NOT_RUN**. No data-source automation, spending, game-exp lifecycle writes or companion-Skill changes. The vetted v0.4.4 companion pins remain unchanged.
+
 ## v0.4.4: independently checking four published Skills
 
 This release coordinates the tested versions of game-exp **v1.5.4**, H5 **v0.2.6** and Godot **v1.0.7** through a published compatibility lock with exact tag commits and Skill-entrypoint digests. Every newly installed Skill has its own read-only version-awareness command and optional dependent-handoff gate. The game-exp v1.5.4 official installer ships an immutable H5/Godot companion snapshot that matches this reviewed combination; it does not chase unvetted newer tags. The full bundle receives a cross-platform ephemeral installation smoke prior to a stable Release. Static-only checks are not a host-by-host proof of routing or human playtesting, and Skill ZIPs cannot self-update without a supporting host.

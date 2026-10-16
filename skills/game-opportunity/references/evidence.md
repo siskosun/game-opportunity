@@ -21,6 +21,18 @@ Never cite a secondary summary as though its original dataset were inspected. If
 
 A useful opportunity needs some answer to: player, situation, substitute, unaddressed friction, and plausible access channel. Missing elements may remain unknown; focus next experiment on the one that most affects investment choice.
 
+## Independence, lineage and recency of supporting signals
+
+Before saying "several sources independently support this opportunity", trace each consequential claim back toward its original observation or dataset:
+
+1. **Origin:** identify the earliest inspectable player action, first-party measurement, author statement or primary policy text. Label a retold news article, influencer clip or AI summary as a derivative unless its independent measurement is demonstrated.
+2. **Shared underlying evidence:** distinguish separate websites from separate datasets, and separate posts from separate players. Syndicated articles, reposted clips, copied press releases, one creator's cross-posted audience, and two estimates fed by the same platform data do **not** constitute independent replications merely because URLs/domains differ.
+3. **Sample and denominator:** preserve platform, target population, time window, opt-in/recruitment mechanism, units and access bias. Two genuinely different communities can still overlap materially; mark independence `UNKNOWN` when participants or vendor inputs cannot be resolved. Do not add view counts, wishes, comments and purchases together.
+4. **Original dates and current applicability:** distinguish event date from publication/scrape date, official effective date from announcement date, and current rule from historical rule. If a claimed policy or numerical threshold cannot be checked from a relevant official/current source, keep it `UNVERIFIED` and plan an appropriate check rather than turning it into a go/no-go rule.
+5. **Conflict handling:** if estimates materially disagree, show their ranges/methods/uncertainty; do not average them into false precision. Repeated testimony is evidence that language circulates, not automatically that unmet demand or reachable revenue grew.
+
+Optional context may record `evidence_dependency`: original source -> derivative(s), any suspected shared data/participants, the verification gap and date checked. When origin cannot be inspected, quote only what the secondary source actually supports. One strong verified behavioral signal can be more decision-relevant than many redundant mentions. No universal "three independent channels", keyword count, tag density, wishlist count or 15% conversion hard gate is permitted without a population-specific justification.
+
 ## Data you can inspect safely
 
 For supplied local CSV/JSON/JSONL review files, `scripts/import_evidence.py` emits **only aggregated topic mentions, explicit vote polarity counts, basic denominators, and source metadata** to a `local-evidence/` path excluded from public Git. This is exploratory keyword analysis, not validated sentiment or unmet-demand detection: keyword matches (including negated phrases) can be wrong, and the sample may be systematically selected. Require original source and sampling details for stronger claims. Do not publish or upload raw reviews, player identities or internal cohorts from the public Skill repository.
