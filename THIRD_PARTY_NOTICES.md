@@ -38,3 +38,10 @@ SOFTWARE.
 - https://github.com/AlterLab-IEU/AlterLab_GameForge (MIT, copyright 2026 Cem Ipek, AlterLab Creative Technologies Laboratory): direct/indirect/aspirational peer comparisons and project scope prompts. No source files copied.
 
 Possible future libraries such as jieba, KeyBERT or datasketch are **not bundled dependencies** and should not be represented as installed.
+
+## Bundled source: NewenergyEric/art-director-skill
+
+- Original project: https://github.com/NewenergyEric/art-director-skill
+- Frozen source: `scripts/pilot.py` at commit `36fe67bd655b1bc9ae110d9a51066e230e25b41e`
+- Vendored location: `tools/art_quality_pilot/vendor/pilot.py` (unmodified) with its upstream MIT license in `tools/art_quality_pilot/vendor/LICENSE` (Copyright (c) 2026 Eric / NewenergyEric).
+- The wrapper/evidence validator in `tools/art_quality_pilot/` is newly written and does not modify the vendored upstream script. Development-stage measurements are synthetic, not a proof of artistic quality.
