@@ -82,13 +82,30 @@ def check_record(evidence: dict, *, root: Path, brief: dict, brief_sha256: str) 
     criterion = evidence.get("criterion_id")
     checks = (brief.get("direction_checks") or []) if isinstance(brief, dict) else []
     rule_checks = (brief.get("review") or []) if isinstance(brief, dict) else []
-    known = {x.get("criterion") for x in checks if isinstance(x, dict)}
+    known = {x.get("criterion") for x in checks
+             if isinstance(x, dict) and isinstance(x.get("criterion"), str)}
     known.update("rule/" + x["rule_id"] for x in rule_checks if isinstance(x, dict) and isinstance(x.get("rule_id"), str))
     if not isinstance(criterion, str) or criterion not in known:
         errors.append("criterion_id: not part of the frozen task brief")
     method = evidence.get("method")
     result = evidence.get("result")
-    if method not in METHODS or result not in RESULTS:
+    # A successful pixel/dimension inspection must never stand in for an
+    # artistic, human, or otherwise untyped acceptance criterion. The brief
+    # retains the original rule verification, whereas generated direction
+    # checks for families/exemplars/delivery do not all carry it.
+    technical_criterion = False
+    if isinstance(criterion, str) and criterion in known:
+        if criterion.startswith("rule/"):
+            rule_id = criterion.removeprefix("rule/")
+            matching_rules = [r for r in (brief.get("rules") or [])
+                              if isinstance(r, dict) and r.get("id") == rule_id]
+            technical_criterion = (len(matching_rules) == 1 and matching_rules[0].get("verification") == "technical")
+        else:
+            technical_criterion = criterion.endswith("/technical") and (
+                criterion.startswith("family/") or criterion.startswith("delivery/"))
+    if method == "technical-tool" and result in {"pass", "fail"} and not technical_criterion:
+        errors.append("criterion_id: technical result cannot evaluate an artistic/human/untyped criterion")
+    if not isinstance(method, str) or method not in METHODS or not isinstance(result, str) or result not in RESULTS:
         errors.append("method/result: unsupported")
     if method == "vlm-triage" and result not in {"suspected", "unknown"}:
         errors.append("vlm-triage must never return an acceptance verdict")
@@ -110,6 +127,8 @@ def check_record(evidence: dict, *, root: Path, brief: dict, brief_sha256: str) 
         if raw_file and raw_hash == execution.get("raw_output_sha256"):
             try:
                 report = json.loads(raw_file.read_text(encoding="utf-8"))
+                if not isinstance(report, dict):
+                    raise ValueError("check-image report must be a JSON object")
                 if report.get("command") != "check-image" or report.get("sha256") != asset_hash:
                     errors.append("raw_output: wrong command or asset hash")
                 checks_report = report.get("checks")
@@ -130,7 +149,9 @@ def check_record(evidence: dict, *, root: Path, brief: dict, brief_sha256: str) 
     return {
         "ok": not errors, "status": "bound" if not errors else "invalid", "errors": errors,
         "binding": {"criterion_id": criterion, "asset_sha256": asset_hash, "raw_output_sha256": raw_hash, "command_sha256": command_hash},
-        "approval": False, "scope": "File binding and narrow technical report consistency only; not a trusted execution receipt or human review."
+        "approval": False,
+        "criterion_assessment": "not_performed",
+        "scope": "File binding and narrowly scoped tool-report consistency only; technical pass/fail never establishes satisfaction of the linked project rule, trusted execution, or human art approval."
     }
 
 
@@ -142,12 +163,13 @@ def main() -> int:
     parser.add_argument("--out", type=Path, help="New JSON report path; never overwrite")
     args = parser.parse_args()
     try:
-        if args.out and args.out.exists():
+        if args.out and (args.out.exists() or args.out.is_symlink()):
             raise ValueError("Report path already exists")
         result = check_record(json.loads(args.evidence.read_text(encoding="utf-8")), root=args.root, brief=json.loads(args.brief.read_text(encoding="utf-8")), brief_sha256=digest(args.brief))
         body = json.dumps(result, indent=2, ensure_ascii=False) + "\n"
         if args.out:
-            args.out.write_text(body, encoding="utf-8")
+            with args.out.open("x", encoding="utf-8") as output:
+                output.write(body)
         print(body, end="")
         return 0 if result["ok"] else 1
     except (ValueError, OSError, json.JSONDecodeError) as exc:

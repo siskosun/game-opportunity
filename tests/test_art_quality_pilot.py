@@ -115,7 +115,7 @@ class PilotSmokeTests(unittest.TestCase):
             self.assertEqual(run.returncode,0,run.stdout+run.stderr)
             self.assertTrue(json.loads(output.read_text(encoding="utf-8"))["ok"])
             receipt=root/"checks"/"command.txt";receipt.write_text(" ".join(cmd),encoding="utf-8")
-            brief={"pack":{"id":"test","version":"1.0.0","fingerprint":"a"*64},"direction_checks":[{"criterion":"rule/PIXEL"}]}
+            brief={"pack":{"id":"test","version":"1.0.0","fingerprint":"a"*64},"direction_checks":[{"criterion":"rule/PIXEL"}],"rules":[{"id":"PIXEL","verification":"technical"}]}
             brief_path=root/"brief.json";brief_path.write_text(json.dumps(brief),encoding="utf-8")
             request={"schema_version":"art-evidence-v0.1","asset":{"path":"assets/real.png","sha256":evidence.digest(asset)},
                      "pack":{"project_id":"test","version":"1.0.0","fingerprint":"a"*64},"brief_sha256":evidence.digest(brief_path),
@@ -143,7 +143,7 @@ class EvidenceSmokeTests(unittest.TestCase):
         self.command.write_text("python scripts/pilot.py check-image assets/test.png --expected-width 16 --expected-height 16 --out checks/output.json\n",encoding="utf-8")
         self.brief={"pack":{"id":"synthetic-art","version":"0.1.0","fingerprint":"f"*64},
                     "direction_checks":[{"criterion":"rule/ROLE","result":"unknown"}],
-                    "review":[{"rule_id":"ROLE","result":"unknown"}]}
+                    "review":[{"rule_id":"ROLE","result":"unknown"}],"rules":[{"id":"ROLE","verification":"technical"}]}
         self.brief_file=self.root/"brief.json"
         self.brief_file.write_text(json.dumps(self.brief),encoding="utf-8")
         self.e={"schema_version":"art-evidence-v0.1","asset":{"path":"assets/test.png","sha256":self.asset_hash},
@@ -162,6 +162,29 @@ class EvidenceSmokeTests(unittest.TestCase):
     def test_normal_binding_does_not_claim_approval(self):
         res=self.check()
         self.assertTrue(res["ok"],res["errors"])
+        self.assertFalse(res["approval"])
+
+    def test_visual_rule_rejects_technical_pass(self):
+        self.brief["rules"][0]["verification"]="visual"
+        self.brief_file.write_text(json.dumps(self.brief),encoding="utf-8")
+        obj=copy.deepcopy(self.e)
+        obj["brief_sha256"]=evidence.digest(self.brief_file)
+        result=self.check(obj)
+        self.assertFalse(result["ok"])
+        self.assertTrue(any("technical result cannot evaluate" in e for e in result["errors"]))
+
+    def test_untyped_exemplar_rejects_technical_pass(self):
+        self.brief["direction_checks"].append({"criterion":"exemplar/a/acceptance/1"})
+        self.brief_file.write_text(json.dumps(self.brief),encoding="utf-8")
+        obj=copy.deepcopy(self.e)
+        obj["criterion_id"]="exemplar/a/acceptance/1"
+        obj["brief_sha256"]=evidence.digest(self.brief_file)
+        self.assertFalse(self.check(obj)["ok"])
+
+    def test_technical_binding_never_assesses_rule(self):
+        res=self.check()
+        self.assertTrue(res["ok"],res["errors"])
+        self.assertEqual(res["criterion_assessment"],"not_performed")
         self.assertFalse(res["approval"])
 
     def test_asset_replaced_or_wrong_hash(self):
