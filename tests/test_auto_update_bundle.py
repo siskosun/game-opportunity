@@ -1,4 +1,6 @@
 import hashlib
+import contextlib
+import sys
 import importlib.util
 import io
 import json
@@ -163,10 +165,53 @@ class UpdaterTests(unittest.TestCase):
             with mock.patch.object(updater, "releases", return_value=with_asset(releases(), data)), \
                  mock.patch.object(updater, "download", return_value=data), \
                  mock.patch.object(updater.subprocess, "run", side_effect=run):
-                with self.assertRaisesRegex(ValueError, "POSTINSTALL_MISMATCH"):
+                with self.assertRaisesRegex(ValueError, "ROLLED_BACK_POSTINSTALL_MISMATCH"):
                     updater.execute(home, "codex", True)
                 self.assertFalse((home / ".codex/skills/game-opportunity").exists(), "failed install must roll back every managed target")
                 self.assertFalse((home / ".game-exp/runtimes/codex/VERSION.txt").exists(), "runtime also rolled back")
+
+    def test_failed_installer_restores_preexisting_managed_files(self):
+        with tempfile.TemporaryDirectory() as d:
+            home=pathlib.Path(d)
+            installed(home, {"game-opportunity":"0.4.6", "game-exp":"1.5.4",
+                             "h5-game-prototype-agent":"0.2.6","godot-prototype-studio":"1.0.7"})
+            config=home / ".codex/config.toml"
+            config.parent.mkdir(parents=True,exist_ok=True)
+            config.write_text("original trusted config",encoding="utf-8")
+            archive=bundle_zip()
+            def broken_install(*args, **kwargs):
+                config.write_text("broken changed config",encoding="utf-8")
+                installed(home)
+                return type("Result",(),{"returncode":1,"stdout":'{"status":"FAIL"}'})()
+            with mock.patch.object(updater, "releases", return_value=with_asset(releases(),archive)), \
+                 mock.patch.object(updater, "download", return_value=archive), \
+                 mock.patch.object(updater.subprocess, "run", side_effect=broken_install):
+                with self.assertRaisesRegex(ValueError,"ROLLED_BACK_INSTALLER_FAILED"):
+                    updater.execute(home,"codex",True)
+            self.assertEqual(config.read_text(encoding="utf-8"),"original trusted config")
+            self.assertEqual(updater.versions(home,"codex")["game-exp"],"1.5.4")
+
+    def test_incomplete_rollback_remains_visible(self):
+        with tempfile.TemporaryDirectory() as d:
+            archive=bundle_zip()
+            class Result:
+                returncode=1
+                stdout='{"status":"FAIL"}'
+            with mock.patch.object(updater,"releases",return_value=with_asset(releases(),archive)), \
+                 mock.patch.object(updater,"download",return_value=archive), \
+                 mock.patch.object(updater.subprocess,"run",return_value=Result()), \
+                 mock.patch.object(updater.InstallationSnapshot,"restore",side_effect=ValueError("LOCKED")):
+                with self.assertRaisesRegex(ValueError,"ROLLBACK_INCOMPLETE"):
+                    updater.execute(pathlib.Path(d),"codex",True)
+            with mock.patch.object(updater,"execute",side_effect=ValueError("ROLLBACK_INCOMPLETE")), \
+                 mock.patch.object(sys,"argv",["auto_update_bundle.py","--harness","codex","--json"]):
+                output=io.StringIO()
+                with contextlib.redirect_stdout(output):
+                    self.assertEqual(updater.main(),2)
+                result=json.loads(output.getvalue())
+            self.assertEqual(result["status"],"ROLLBACK_INCOMPLETE")
+            self.assertIsNone(result["writes"])
+            self.assertEqual(result["reason"],"MANUAL_RECOVERY_REQUIRED")
 
 if __name__ == "__main__":
     unittest.main()
