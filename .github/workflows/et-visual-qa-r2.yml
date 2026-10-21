@@ -32,7 +32,8 @@ jobs:
           set -euo pipefail
           test "$(git -C _trial_echo rev-parse HEAD)" = 38b9daa1adf78002c8ec5349c269a4ce31959d8f
           node tools/art_quality_pilot/experiments/et_visual_01/r2/apply_r2.mjs _trial_echo
-          test -z "$(git -C _trial_echo diff --name-only -- src/game.js src/render.js src/levels.js src/route_fork.js src/airborne_bridge.js)"
+          test -z "$(git -C _trial_echo diff --name-only -- src/game.js src/levels.js src/route_fork.js src/airborne_bridge.js)"
+          test "$(sha256sum _trial_echo/src/render.js | cut -d " " -f 1)" = 362bb613fbc3d5ad4e61f26910aab08146eab2cbc63cc491e7d8df026483ec0f
           test -f _trial_echo/src/visual_hud.js
       - name: Test actual game logic and UI semantic mapping
         shell: bash
