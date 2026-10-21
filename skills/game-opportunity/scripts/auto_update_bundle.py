@@ -3,7 +3,7 @@
 from __future__ import annotations
 import argparse,hashlib,json,pathlib,re,subprocess,sys,tempfile,urllib.request,zipfile,io,stat
 NAMES=("game-opportunity","game-exp","h5-game-prototype-agent","godot-prototype-studio")
-VERSION=re.compile(r"^v?(\\d+)\\.(\\d+)\\.(\\d+)$")
+VERSION=re.compile(r"^v?(\d+)\.(\d+)\.(\d+)$")
 def ver(s):
     m=VERSION.fullmatch(str(s))
     if not m: raise ValueError("INVALID_SEMVER")
