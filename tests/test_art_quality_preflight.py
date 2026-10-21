@@ -125,6 +125,17 @@ class RealBaselinePreflightTests(unittest.TestCase):
         self.assertFalse(result['ok'])
         self.assertIn('final asset sha256 mismatch',json.dumps(result['file_errors']))
 
+    def test_empty_final_review_file_does_not_establish_baseline(self):
+        self.records['study_kind']='real'
+        self.rec['final_quality']={'status':'reviewed','defects':[]}
+        file=self.root/'review.txt';file.write_bytes(b'')
+        self.rec['final_review_evidence']={'path':'review.txt','sha256':evidence.digest(file),
+                                          'asset_sha256':evidence.digest(self.asset)}
+        result=preflight.assess(self.records,self.root)
+        self.assertFalse(result['ok'])
+        self.assertFalse(result['baseline_capture_ready'])
+        self.assertIn('empty evidence file',json.dumps(result['file_errors']))
+
     def test_missing_artifact_does_not_become_zero_defect(self):
         self.records['study_kind']='real'
         self.records['records'][0]['attempts'][0]['artifact_path']=None

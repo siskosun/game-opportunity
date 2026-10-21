@@ -22,6 +22,8 @@ def _file_check(root: Path, path: object, sha: object, label: str) -> tuple[bool
         return False, f"{label}: missing or invalid sha256"
     try:
         actual_path = evidence.inside(root, path, label)
+        if actual_path.stat().st_size == 0:
+            return False, f"{label}: empty evidence file"
         if evidence.digest(actual_path) != sha:
             return False, f"{label}: sha256 mismatch"
     except (OSError, ValueError) as exc:

@@ -85,6 +85,15 @@ class EvidenceHardeningTests(unittest.TestCase):
         self.assertFalse(self.check()['ok'])
         self.assertIn('JSON object',json.dumps(self.check()['errors']))
 
+    def test_empty_raw_evidence_cannot_count_as_verified(self):
+        self.report.write_bytes(b'')
+        self.e['method']='visual-human'
+        self.e['result']='pass'
+        self.e['execution']['raw_output_sha256']=evidence.digest(self.report)
+        res=self.check()
+        self.assertFalse(res['ok'])
+        self.assertIn('empty evidence file',json.dumps(res['errors']))
+
     def test_old_or_replaced_artifact_fails_hash_link(self):
         self.asset.write_bytes(b'DIFFERENT CONTENT')
         out=self.check()

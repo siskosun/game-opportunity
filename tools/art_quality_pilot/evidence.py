@@ -50,6 +50,9 @@ def check_hash(root: Path, record: dict, label: str, failures: list[str]) -> tup
         return None, None
     try:
         file = inside(root, record.get("path"), label)
+        if file.stat().st_size == 0:
+            failures.append(f"{label}: empty evidence file")
+            return file, None
         actual = digest(file)
         if expected != actual:
             failures.append(f"{label}: sha256 mismatch")
