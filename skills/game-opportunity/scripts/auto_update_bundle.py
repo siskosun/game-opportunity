@@ -76,10 +76,22 @@ def verified_current(home,harness,latest):
     except (ValueError,TypeError,KeyError,OSError,subprocess.TimeoutExpired):
         return False
 
+class RollbackIncompleteError(ValueError):
+    def __init__(self, recovery_directory):
+        super().__init__("ROLLBACK_INCOMPLETE")
+        self.recovery_directory = recovery_directory
+
+
 class InstallationSnapshot:
     """Backup exactly the selected Harness-managed paths for verified rollback."""
     def __init__(self,home,harness):
-        self.temp=tempfile.TemporaryDirectory(prefix="game-skills-snapshot-")
+        self.home=home
+        self.recovery_root=home/".game-exp"/"recovery"
+        if any(path.is_symlink() for path in (self.recovery_root, *self.recovery_root.parents)):
+            raise ValueError("UNSAFE_RECOVERY_PATH")
+        self.recovery_root.mkdir(parents=True,exist_ok=True,mode=0o700)
+        self.backup_dir=pathlib.Path(tempfile.mkdtemp(prefix="four-skill-update-",dir=self.recovery_root))
+        self.preserve=False
         self.targets=[home/("."+harness)/"skills"/n for n in NAMES]
         self.targets.append(home/".game-exp"/"runtimes"/harness)
         config={"codex":".codex/config.toml","cursor":".cursor/mcp.json",
@@ -90,14 +102,14 @@ class InstallationSnapshot:
             for i,target in enumerate(self.targets):
                 if any(parent.is_symlink() for parent in (target,*target.parents)):
                     raise ValueError("UNSAFE_MANAGED_PATH")
-                backup=pathlib.Path(self.temp.name)/str(i)
-                if target.is_dir():shutil.copytree(target,backup);kind="dir"
+                backup=self.backup_dir/str(i)
+                if target.is_dir():shutil.copytree(target,backup,symlinks=True);kind="dir"
                 elif target.is_file():shutil.copy2(target,backup);kind="file"
                 elif not target.exists():kind="absent"
                 else:raise ValueError("INVALID_MANAGED_PATH")
                 self.saved.append((target,kind,backup))
         except Exception:
-            self.temp.cleanup()
+            self.close()
             raise
     def restore(self):
         failed=[]
@@ -109,7 +121,7 @@ class InstallationSnapshot:
                 elif target.is_file():target.unlink()
                 if kind=="dir":
                     target.parent.mkdir(parents=True,exist_ok=True)
-                    shutil.copytree(backup,target)
+                    shutil.copytree(backup,target,symlinks=True)
                 elif kind=="file":
                     target.parent.mkdir(parents=True,exist_ok=True)
                     shutil.copy2(backup,target)
@@ -117,7 +129,10 @@ class InstallationSnapshot:
                 failed.append(target.name)
         if failed:raise ValueError("ROLLBACK_INCOMPLETE")
     def close(self):
-        self.temp.cleanup()
+        if not self.preserve:
+            shutil.rmtree(self.backup_dir,ignore_errors=True)
+            try:self.recovery_root.rmdir()
+            except OSError:pass
 
 def execute(home,harness,apply=False):
     rows=releases()
@@ -171,7 +186,8 @@ def execute(home,harness,apply=False):
             try:
                 snapshot.restore()
             except (ValueError, OSError) as err:
-                raise ValueError("ROLLBACK_INCOMPLETE") from err
+                snapshot.preserve=True
+                raise RollbackIncompleteError(snapshot.backup_dir.relative_to(home).as_posix()) from err
             reason = str(failure)
             safe_reasons = {"INSTALLER_EXECUTION_FAILED", "INSTALLER_OUTPUT_INVALID",
                             "INSTALLER_FAILED", "POSTINSTALL_MISMATCH"}
@@ -193,9 +209,9 @@ def main():
         result=execute(a.home.expanduser().resolve(),a.harness,a.apply)
     except Exception as exc:
         reason=str(exc) if isinstance(exc,ValueError) else type(exc).__name__
-        if reason=="ROLLBACK_INCOMPLETE":
+        if isinstance(exc,RollbackIncompleteError):
             result={"status":"ROLLBACK_INCOMPLETE","reason":"MANUAL_RECOVERY_REQUIRED",
-                    "writes":None}
+                    "recovery_directory":exc.recovery_directory,"writes":None}
         elif reason.startswith("ROLLED_BACK_"):
             result={"status":"ROLLED_BACK","reason":reason,"writes":False}
         else:
