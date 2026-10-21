@@ -7,8 +7,8 @@ import {createHash} from 'node:crypto';
 import {resolve, join} from 'node:path';
 
 const [mode, rootArg] = process.argv.slice(2);
-if (!['candidate-01', 'candidate-02'].includes(mode) || !rootArg) {
-  throw new Error('Usage: node apply_visual_candidate.mjs candidate-01|candidate-02 <checkout-root>');
+if (!['candidate-01', 'candidate-02', 'candidate-02-r1'].includes(mode) || !rootArg) {
+  throw new Error('Usage: node apply_visual_candidate.mjs candidate-01|candidate-02|candidate-02-r1 <checkout-root>');
 }
 const root = resolve(rootArg);
 const source = join(root, 'index.html');
@@ -75,9 +75,45 @@ body { background: radial-gradient(790px 390px at 50% -11%, #184b50 0%, #07151d 
   canvas { border-radius: 8px; box-shadow: 0 0 0 2px #68e8cf, 0 14px 25px rgba(0,0,0,.36); }
 }
 `;
-let html = replaceExactlyOnce(baseHTML, '</head>', `<style id="et-visual-exploratory">${shared}\n${mode==='candidate-01'?css01:css02}</style>\n  </head>`, 'head-insert');
+const revision02 = `
+/* Candidate 02 revision 1: preserve the approved-as-preferred palette, frame and legibility.
+   Round-1 human preference only; never implies game-exp or production approval. */
+@media (min-width: 581px) and (max-width: 900px) {
+  /* Landscape: separate adjacent selectors while retaining the first-screen game area. */
+  .toolbar { column-gap: 14px; }
+  .toolbar > select, .toolbar > button { padding-left: 9px; padding-right: 9px; }
+}
+@media (max-width: 580px) and (orientation: portrait) {
+  /* Portrait: four controls in a stable 2 x 2 grid, rather than centered uneven pills. */
+  .toolbar {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 12px;
+    row-gap: 9px;
+    justify-content: stretch;
+    align-items: stretch;
+    margin-top: 8px;
+    margin-bottom: 8px;
+  }
+  .toolbar > select, .toolbar > button {
+    display: block;
+    width: 100%;
+    min-width: 0;
+    min-height: 42px;
+    padding: 8px 12px;
+    text-align: left;
+    font-size: 12px;
+    line-height: 20px;
+    white-space: nowrap;
+  }
+  .toolbar > select { padding-right: 24px; }
+}
+`;
+const variantCss = mode === 'candidate-01' ? css01 :
+  css02 + (mode === 'candidate-02-r1' ? '\n' + revision02 : '');
+let html = replaceExactlyOnce(baseHTML, '</head>', `<style id="et-visual-exploratory">${shared}\n${variantCss}</style>\n  </head>`, 'head-insert');
 let render = baseRender;
-if (mode === 'candidate-02') {
+if (mode === 'candidate-02' || mode === 'candidate-02-r1') {
   // These are visual-only changes; geometry and target are always from the real game state.
   const marker = "    ctx.strokeRect(rect.x, rect.y, rect.w, rect.h);";
   const improvement = `${marker}
@@ -104,6 +140,9 @@ if (mode === 'candidate-02') {
 const manifest = {
   schema: 'et-visual-exploratory-0.1',
   mode,
+  revision_parent: mode === 'candidate-02-r1' ? 'candidate-02' : null,
+  round_1_reviewer_feedback_applied: mode === 'candidate-02-r1' ? ['landscape-control-spacing', 'portrait-even-grid-left-text-alignment'] : [],
+  reviewer_verdict: 'preference_only_not_approval',
   pinned_original_ref: '38b9daa1adf78002c8ec5349c269a4ce31959d8f',
   source_index_sha256: sha256(baseHTML),
   source_render_sha256: sha256(baseRender),

@@ -10,7 +10,7 @@ import { createRequire } from 'node:module';
 const frozenRef = '38b9daa1adf78002c8ec5349c269a4ce31959d8f';
 const origin = process.env.ECHO_VISUAL_ORIGIN || 'http://127.0.0.1:8765';
 const variantId = process.env.ET_VISUAL_VARIANT_ID;
-if (!['candidate-01', 'candidate-02'].includes(variantId)) throw new Error('ET_VISUAL_VARIANT_ID is required');
+if (!['candidate-01', 'candidate-02', 'candidate-02-r1'].includes(variantId)) throw new Error('ET_VISUAL_VARIANT_ID is required');
 const sourceRoot = resolve(process.env.ECHO_VISUAL_SOURCE || '_frozen_echo');
 const outputRoot = resolve(process.env.ECHO_VISUAL_OUTPUT || 'artifacts/echo-visual');
 const moduleRoot = process.env.ECHO_PLAYWRIGHT_ROOT;
@@ -31,6 +31,7 @@ async function hashedBuild() {
 
 const viewports = [
   { id: 'mobile-portrait', width: 390, height: 844 },
+  { id: 'mobile-portrait-min', width: 360, height: 800 },
   { id: 'mobile-landscape', width: 844, height: 390 },
   { id: 'desktop', width: 1280, height: 900 },
 ];
@@ -43,7 +44,8 @@ async function metadata(page) {
     const nodes = ['room', 'difficulty', 'style', 'restart', 'next'].map(id => {
       const el = document.getElementById(id);
       const r = el?.getBoundingClientRect();
-      return { id, visible: !!(el && el.getClientRects().length), bounding_css_px: r ? { x: r.x, y: r.y, width: r.width, height: r.height } : null };
+      return { id, visible: !!(el && el.getClientRects().length), bounding_css_px: r ? { x: r.x, y: r.y, width: r.width, height: r.height } : null,
+        text_align: el ? getComputedStyle(el).textAlign : null, font_size: el ? getComputedStyle(el).fontSize : null };
     });
     return {
       title: document.title,
@@ -121,19 +123,48 @@ async function run() {
       await page.waitForTimeout(620);
       await snap('after-input');
       const final = await metadata(page);
+      const uiLayoutIssues = [];
+      if (variantId === 'candidate-02-r1') {
+        const coords = initial.controls.slice(0, 4).map(c => c.bounding_css_px);
+        const opts = initial.controls.slice(0, 4);
+        const near = (a, b, tolerance = 1) => Math.abs(a-b) <= tolerance;
+        if (viewport.id.startsWith('mobile-portrait')) {
+          const [room, difficulty, style, restart] = coords;
+          const columnGap = difficulty.x - (room.x + room.width);
+          const rowGap = style.y - (room.y + room.height);
+          if (!near(room.x, style.x) || !near(difficulty.x, restart.x) ||
+              !near(room.y, difficulty.y) || !near(style.y, restart.y))
+            uiLayoutIssues.push('portrait 2 x 2 grid rows/columns do not align');
+          if (!coords.every(c => near(c.width, room.width) && c.height >= 40))
+            uiLayoutIssues.push('portrait control boxes do not have consistent widths and 40px+ height');
+          if (columnGap < 10 || rowGap < 8)
+            uiLayoutIssues.push(`portrait grid spacing too small (${columnGap}, ${rowGap})`);
+          if (opts.some(c => c.text_align !== 'left'))
+            uiLayoutIssues.push('portrait controls are not left-aligned');
+        }
+        if (viewport.id === 'mobile-landscape') {
+          for (let i = 0; i < 3; i++) {
+            const gap = coords[i+1].x - (coords[i].x + coords[i].width);
+            if (gap < 12) uiLayoutIssues.push(`landscape gap ${i} too small (${gap})`);
+          }
+        }
+        if (coords.some(c => c.x < 0 || c.x + c.width > viewport.width + 1))
+          uiLayoutIssues.push('controls outside viewport');
+      }
       results.push({
         viewport, url: page.url(), http_status: response.status(),
         initial, final, screenshots, errors, blocked_requests: blocked,
+        revision_layout_gate: variantId === 'candidate-02-r1' ? { passed: uiLayoutIssues.length === 0, issues: uiLayoutIssues } : null,
         input: [{ action: 'focus canvas' }, { action: 'hold ArrowLeft', duration_ms: 180 }, { action: 'hold Space + ArrowLeft', duration_ms: 210 }, { action: 'release', wait_ms: 620 }],
         verified_states: ['initial canvas display', 'real keyboard input issued'],
         not_verified: ['successful platform landing', 'narrow-bridge cue', 'moving-rail target', 'blocked-warning text', 'human assessment', 'visual improvement or rework reduction'],
       });
-      if (errors.length || initial.horizontal_overflow || final.horizontal_overflow || initial.canvas_visible_fraction_in_initial_viewport < 0.999) failed = true;
+      if (errors.length || initial.horizontal_overflow || final.horizontal_overflow || initial.canvas_visible_fraction_in_initial_viewport < 0.999 || uiLayoutIssues.length) failed = true;
       await context.close();
     }
   } finally { await browser.close(); }
   const report = {
-    schema_version: 'et-visual-pair-exploratory-v0.1',
+    schema_version: 'et-visual-reviewer-revision-v0.2',
     variant_id: variantId,
     test_only_seed: 41820631,
     source_repo: 'https://github.com/siskosun/echo-tide',

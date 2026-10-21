@@ -1,4 +1,4 @@
-name: ET-VISUAL-01 exploratory candidates (not causal A/B)
+name: ET-VISUAL-01 reviewer-feedback revision (candidate-02-r1)
 
 on:
   push:
@@ -18,7 +18,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        candidate: [candidate-01, candidate-02]
+        candidate: [candidate-02-r1]
     steps:
       - name: Checkout only the trial tooling
         uses: actions/checkout@v4
@@ -83,8 +83,8 @@ jobs:
           const fs = require('fs');
           const p = 'artifacts/${{ matrix.candidate }}/runtime-report.json';
           const r = JSON.parse(fs.readFileSync(p,'utf8'));
-          if (!r.browser_technical_ok || r.variant_id !== '${{ matrix.candidate }}' || r.outputs.length !== 3 || !r.outputs.every(x => x.initial.canvas_visible_fraction_in_initial_viewport >= 0.999 && !x.errors.length && x.screenshots.length === 3)) process.exit(1);
-          console.log('CAPTURED',r.variant_id,'BROWSER',r.browser.version,'3 VIEWPORTS/9 STAGES/27 FILES','TECHNICAL_OK',r.browser_technical_ok);
+          if (!r.outputs.every(x => x.revision_layout_gate?.passed) || !r.browser_technical_ok || r.variant_id !== '${{ matrix.candidate }}' || r.outputs.length !== 4 || !r.outputs.every(x => x.initial.canvas_visible_fraction_in_initial_viewport >= 0.999 && !x.errors.length && x.screenshots.length === 3)) process.exit(1);
+          console.log('CAPTURED',r.variant_id,'BROWSER',r.browser.version,'4 VIEWPORTS/12 STAGES/36 FILES','TECHNICAL_OK',r.browser_technical_ok);
           NODE
           cp -R _trial_echo/dist 'artifacts/${{ matrix.candidate }}/playable-dist'
           cp _trial_echo/visual-eval/lineage.json 'artifacts/${{ matrix.candidate }}/lineage.json'
