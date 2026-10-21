@@ -101,7 +101,7 @@ jobs:
             cp "_trial_echo/$path" "artifacts/et-touch-t3/source-patch/$path"
           done
           (cd artifacts/et-touch-t3/source-patch && sha256sum index.html src/*.js > source-sha256.txt)
-          sha256sum -c artifacts/et-touch-t3/source-patch/source-sha256.txt || true
+          (cd artifacts/et-touch-t3/source-patch && sha256sum -c source-sha256.txt)
       - name: Preserve all screenshots, reports and failed-step evidence
         if: always()
         uses: actions/upload-artifact@v4
