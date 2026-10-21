@@ -92,6 +92,16 @@ jobs:
           cpSync('_trial_echo/visual-eval/touch-t3-lineage.json','artifacts/et-touch-t3/touch-t3-lineage.json');
           console.log('T3 saved without modifying original game repo (no human/device approval)');
           NODE
+      - name: Preserve exact QA-tested source patch for Echo Tide PR review
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts/et-touch-t3/source-patch/src
+          for path in index.html src/main.js src/render.js src/visual_hud.js src/touch_controls.js; do
+            cp "_trial_echo/$path" "artifacts/et-touch-t3/source-patch/$path"
+          done
+          (cd artifacts/et-touch-t3/source-patch && sha256sum index.html src/*.js > source-sha256.txt)
+          sha256sum -c artifacts/et-touch-t3/source-patch/source-sha256.txt || true
       - name: Preserve all screenshots, reports and failed-step evidence
         if: always()
         uses: actions/upload-artifact@v4
