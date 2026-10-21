@@ -1,6 +1,6 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {attachTouchControls,HOLD_PULSE_MS} from '../tools/touch_controls.js';
+import {attachTouchControls,HOLD_PULSE_MS} from '../touch_controls.js';
 
 class FakeTarget {
   listeners=new Map();
