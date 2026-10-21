@@ -89,6 +89,11 @@ class UpdaterTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "UNSAFE_ARCHIVE"):
                 updater.extract(bundle_zip(malicious="game-opportunity/../evil"), pathlib.Path(d))
 
+    def test_single_windows_separator_rejected(self):
+        with tempfile.TemporaryDirectory() as d:
+            with self.assertRaisesRegex(ValueError, "UNSAFE_ARCHIVE"):
+                updater.extract(bundle_zip(malicious="game-opportunity\\..\\evil.txt"), pathlib.Path(d))
+
     def test_archive_symlink_rejected(self):
         with tempfile.TemporaryDirectory() as d:
             buf = io.BytesIO()
