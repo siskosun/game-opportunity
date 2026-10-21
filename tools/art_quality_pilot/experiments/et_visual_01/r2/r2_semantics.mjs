@@ -53,5 +53,5 @@ row=describeVisualHud(dead);
 assert.equal(row.state,'lost');
 checked.push('terminal lost state has non-deceptive cue');
 const helper=readFileSync(resolve(root,'src','visual_hud.js'),'utf8');
-assert.ok(!/game\.(player|route|level|status)\s*=|game\.echoes\.push/.test(helper),'UI helper must not assign authoritative game state');
+assert.ok(!/game\.(player|route|level|status)\s*=(?!=)|game\.echoes\.push/.test(helper),'UI helper must not assign authoritative game state');
 console.log(JSON.stringify({ok:true,checks:checked,pinned_prod_source:'38b9daa1adf78002c8ec5349c269a4ce31959d8f',limit:'fixtures are not human device assessment'},null,2));
