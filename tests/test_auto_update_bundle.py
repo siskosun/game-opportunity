@@ -43,6 +43,8 @@ def bundle_zip(lock_override=False, malicious=None):
         "game-opportunity/VERSION": "0.4.7\n",
         "game-opportunity/compatibility.lock.json": json.dumps(lock),
         "game-opportunity/scripts/install_bundle.py": "# fake installer, never actually executed\n",
+        "game-opportunity/scripts/check_bundle.py": "# fake checker\n",
+        "game-opportunity/scripts/auto_update_bundle.py": "# fake updater\n",
     }
     if malicious:
         files[malicious] = "evil"
@@ -150,6 +152,8 @@ class UpdaterTests(unittest.TestCase):
                  mock.patch.object(updater.subprocess, "run", side_effect=run):
                 with self.assertRaisesRegex(ValueError, "POSTINSTALL_MISMATCH"):
                     updater.execute(home, "codex", True)
+                self.assertFalse((home / ".codex/skills/game-opportunity").exists(), "failed install must roll back every managed target")
+                self.assertFalse((home / ".game-exp/runtimes/codex/VERSION.txt").exists(), "runtime also rolled back")
 
 if __name__ == "__main__":
     unittest.main()
