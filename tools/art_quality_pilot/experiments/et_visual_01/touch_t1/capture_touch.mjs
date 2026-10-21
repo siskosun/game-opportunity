@@ -64,10 +64,11 @@ async function exerciseTouches(page,viewport){
  const joint=await snapshot(page);
  if(joint.readonly?.player.y>=rightHeld.readonly.player.y-4)issues.push('jump touch did not lift player');
  if(!joint.readonly?.pressed.includes('Space')||!joint.readonly?.pressed.includes('ArrowRight'))issues.push('multitouch not independently held');
- await touch('touchEnd',[{...right,id:1}]);
+ await touch('touchEnd',[{...jump,id:2}]);
  await page.waitForTimeout(170);
  const afterShortJump=await snapshot(page);
  if(afterShortJump.readonly?.pressed.includes('Space'))issues.push('jump remains stuck after short tap');
+ if(!afterShortJump.readonly?.pressed.includes('ArrowRight'))issues.push('right finger dropped when jump released');
  await touch('touchStart',[{...right,id:1},{...dash,id:3}]);
  await page.waitForTimeout(120);
  const afterDash=await snapshot(page);
