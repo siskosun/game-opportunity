@@ -41,3 +41,15 @@
 - 横屏 T1 与 T2 两侧按钮、顶部工具栏截图区域逐像素一致；中心游戏动态物件存在因截图时刻造成的差异。T2 `dist/index.html` SHA-256：`2c51a8f7665a4eb292eb15100e83e254f4d25de9a6cc89b5102179147da8f922`；JS SHA-256：`ccd61ae72d9e0fa0205d77cccf6761323ed8a18a9f75a477c446446ab0e79e19`，后者与 T1 原始构建完全相同。
 - 用户复评 ZIP `ET_VISUAL_02_touch_T2_review.zip` SHA-256：`2553fcc27f6c9cd84342dfc2f0a02eeec3cffb8a5c680e70ccabce5620dd8797`；21 项文件独立哈希校验通过。目录：`/游戏开发方案/ET-VISUAL-01-草案/ET-VISUAL-02-触控T2-待评审/`。
 - **现行已选视觉基线仍为 02-R2**；操作布局只在 T2 候选中待用户二次评价。真机 iOS/Android、多关真人游玩、手感和 Art Director / game-exp 生产批准依然未完成；PR #13 保持 Draft，未合并 Echo Tide main，不写受保护 Ledger。
+
+## 2026-10-21 · 用户否定竖屏虚拟按键，横屏优先 T3 待复评（覆盖旧 T2 状态）
+
+用户反馈：**“操控面积太小了，竖屏不适合这种虚拟按键的方式”**。这构成对 **T2 竖屏虚拟按键路线**的明确否定，不能因 T2 自动检查通过而称其已获认可。先前反馈“横屏没问题”仍有效：**横屏 T1 已被认可**，无需改变。
+
+- **唯一已选定的试点视觉基线继续是 02-R2**；T1/T2 历史源码和包保留，不替换 R2，也不把 T3 写成已认可版本。
+- T3 `landscape-first-t3` 为可回退的候选：360–430 CSS px 的手机触控竖屏仅显示旋转说明，五个虚拟键隐藏、游戏时钟暂停；转横屏继续同一关卡；旋转途中清空按住的键，避免残留加速或跳跃。未做强制锁定手机方向；用户需自行关闭系统旋转锁定。
+- [Chrome CI #39579632465](https://github.com/siskosun/game-opportunity/actions/runs/39579632465) 通过。固定 Echo Tide @ `38b9daa1` 与先前选定 R2 的构建字节 SHA 一致后，叠加横屏 T1 和独立 T3。Echo Tide 原有 **69 项**测试、已有触控 **7 项**单元测试、R2 状态语义检测通过；Chrome 155 对 360×640、360×800、390×844、430×932 竖屏、844×390 横屏、1280×900 桌面及原页面旋转-继续-旋转回竖屏做了模拟检查，**全部通过**，无资源/JavaScript 错误。
+- 经过与 T2 中继承的已认可横屏截图对比，844×390 **左右按钮区和顶部控件区域三块 ROI 的差异为 0 像素**；T3 仅更改试验版 `index.html` 和输入适配宿主 `src/main.js`，未触动 `src/game.js`、`src/render.js`、关卡和规则。
+- T3 HTML 构建 SHA-256 `b12b74cca5574fcbc62b6e039691097b2b3438c3977ae924f92a4fdc03e33d74`；JS SHA-256 `d9f50030f85d40279f37c23590dc72039a1941421ebe77a2d0b776b7f6eedd63`。可运行复评包 SHA-256 `2b544e6d7156b1f34bccdab2f9d922d82ce22aa7ed8e2d50acaff4528c942707`。
+- 资料空间：`/游戏开发方案/ET-VISUAL-01-草案/ET-VISUAL-02-触控T3-待评审/`，代码 [PR #13](https://github.com/siskosun/game-opportunity/pull/13) 仍 Draft 未合并。
+- **尚未验证**：T3 横屏优先策略是否符合用户目标，手机 iOS/Android 真机旋转/触控及整关体验。当前项目不是 game-exp 新实验，未写 Review PASS/SELECTED，原 Echo Tide main 与受保护 Ledger 未更改。
