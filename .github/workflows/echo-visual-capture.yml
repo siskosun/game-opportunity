@@ -7,6 +7,7 @@ on:
     paths:
       - .github/workflows/echo-visual-capture.yml
       - tools/art_quality_pilot/capture_echo_tide.mjs
+      - tools/art_quality_pilot/fixtures/echo-tide-visual-draft/style-pack.json
 permissions:
   contents: read
 
@@ -23,6 +24,13 @@ jobs:
           repository: siskosun/echo-tide
           ref: 38b9daa1adf78002c8ec5349c269a4ce31959d8f
           path: _frozen_echo
+          persist-credentials: false
+      - name: Checkout pinned Art Director validator (read-only)
+        uses: actions/checkout@v4
+        with:
+          repository: NewenergyEric/art-director-skill
+          ref: 36fe67bd655b1bc9ae110d9a51066e230e25b41e
+          path: _art_director
           persist-credentials: false
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -68,6 +76,49 @@ jobs:
             sleep 0.3
           done
           ECHO_PLAYWRIGHT_ROOT="$RUNNER_TEMP/art-capture-browser" node tools/art_quality_pilot/capture_echo_tide.mjs
+      - name: Validate and build unapproved Art Director B-group pack
+        shell: bash
+        run: |
+          set -euo pipefail
+          source_dir=artifacts/et-visual-style-source
+          mkdir -p "$source_dir/references"
+          cp tools/art_quality_pilot/fixtures/echo-tide-visual-draft/style-pack.json "$source_dir/style-pack.json"
+          for name in desktop-initial-canvas.png mobile-portrait-initial-viewport.png mobile-landscape-initial-viewport.png mobile-landscape-after-input-canvas.png; do
+            cp "artifacts/echo-visual/$name" "$source_dir/references/$name"
+          done
+          python _art_director/scripts/style_pack.py validate "$source_dir" > artifacts/et-visual-validate.json
+          python _art_director/scripts/style_pack.py build "$source_dir" --out artifacts/et-visual-built > artifacts/et-visual-build.json
+          python _art_director/scripts/style_pack.py verify artifacts/et-visual-built > artifacts/et-visual-verify.json
+          python _art_director/scripts/style_pack.py brief artifacts/et-visual-built --category ui --family et-forecast-ui --task 'ET-VISUAL-01: predict landing + moving rail in real mobile game context' --out artifacts/et-visual-ui-brief.json > artifacts/et-visual-brief-command.json
+          python _art_director/scripts/style_pack.py archive artifacts/et-visual-built --out artifacts/et-visual-art-director-draft.zip > artifacts/et-visual-archive.json
+          python - <<'PYASSERT'
+          import json
+          from pathlib import Path
+          a=Path('artifacts/et-visual-built')
+          style=json.loads((a/'style-pack.json').read_text())
+          manifest=json.loads((a/'manifest.json').read_text())
+          brief=json.loads(Path('artifacts/et-visual-ui-brief.json').read_text())
+          assert style['status']=='draft' and style['approval'] is None
+          assert not manifest['release'] and not brief['pack']['release']
+          assert all(x['status']=='proposed' for x in style['rules'])
+          assert all(x['status']=='candidate' for x in style['references'])
+          assert all(x['result']=='unknown' for x in brief['review'])
+          print('UNAPPROVED_DRAFT_PACK_VERIFIED', manifest['pack'])
+          PYASSERT
+      - name: Upload unapproved art style pack
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: echo-tide-art-director-draft-pack
+          path: |
+            artifacts/et-visual-art-director-draft.zip
+            artifacts/et-visual-validate.json
+            artifacts/et-visual-build.json
+            artifacts/et-visual-verify.json
+            artifacts/et-visual-ui-brief.json
+            artifacts/et-visual-archive.json
+          if-no-files-found: warn
+          retention-days: 14
       - name: Upload runtime-only visual evidence
         if: always()
         uses: actions/upload-artifact@v4
