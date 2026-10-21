@@ -6,6 +6,7 @@ not rewrite its original denominators or infer any missing values as zero.
 """
 from __future__ import annotations
 import argparse
+import hashlib
 from collections import defaultdict
 import importlib.util
 import json
@@ -117,14 +118,17 @@ def main() -> int:
     p.add_argument("--out", type=Path)
     args = p.parse_args()
     try:
-        if args.out and args.out.exists():
+        if args.out and (args.out.exists() or args.out.is_symlink()):
             raise ValueError("Report already exists")
-        records = json.loads(args.records.read_text(encoding="utf-8-sig"))
+        raw_records = args.records.read_bytes()
+        records = json.loads(raw_records.decode("utf-8-sig"))
         upstream = use_upstream(args.upstream_pilot, records)
         result = extend(records, upstream)
+        result["records_sha256"] = hashlib.sha256(raw_records).hexdigest()
         value = json.dumps(result, indent=2, ensure_ascii=False, allow_nan=False) + "\n"
         if args.out:
-            args.out.write_text(value, encoding="utf-8")
+            with args.out.open("x", encoding="utf-8") as target:
+                target.write(value)
         print(value, end="")
         return 0
     except (OSError, ValueError, KeyError) as exc:

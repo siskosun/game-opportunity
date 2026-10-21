@@ -5,7 +5,7 @@ Status: **P0 technical implementation / synthetic smoke tests only**. This is **
 ## Scope
 
 - `vendor/pilot.py`: exact frozen upstream Art Director pilot (MIT) copied from `NewenergyEric/art-director-skill` at SHA `36fe67bd655b1bc9ae110d9a51066e230e25b41e`. Preserve the upstream license in `vendor/LICENSE`. This component is available even if the upstream disappears. On upgrades, inspect upstream diff and re-run tests; do not track `main` implicitly.
-- `metrics.py`: a small **additive** descriptive supplement to upstream `pilot.py summarize`: observed/missing human manual/review minutes, generation elapsed time, explicit currency cost, and independently reviewed final defects. A/B data from the upstream summary is retained unchanged. Missing values stay missing (mean=null if incomplete); no causal claims.
+- `metrics.py`: a small **additive** descriptive supplement to upstream `pilot.py summarize`: observed/missing human manual/review minutes, generation elapsed time, explicit currency cost, and independently reviewed final defects. It binds the report to the exact input-record bytes (`records_sha256`) and creates outputs exclusively, without overwriting previous reports. A/B data from the upstream summary is retained unchanged. Missing values stay missing (mean=null if incomplete); no causal claims.
 - `evidence.py`: a **detached evidence validator** that binds a single asset and raw tool output to the frozen Art Director `brief` and `criterion_id` using SHA-256. It never writes to `reviews[].result` or game-exp records. For positive technical reports it understands only upstream `pilot.py check-image v1.0`; all other tools need a separately verified adapter. It refuses to attach a `technical-tool` pass/fail to a nontechnical (visual/human/untyped) criterion and returns `criterion_assessment: not_performed` in all cases. It does **not** authenticate execution or reviewers.
 - `tests/test_art_quality_pilot.py`: synthetic inputs and adversarial tests, run in the existing Linux/Windows `unittest` CI.
 
@@ -54,7 +54,7 @@ All referenced `asset` and `execution` paths are relative to `--root` and must e
 
 ## Real baseline preflight (P0-C preparation)
 
-Read [REAL_PILOT_RUNBOOK.md](REAL_PILOT_RUNBOOK.md) before any real asset trial. The new read-only script checks concrete local asset hashes, links to hashed final-review receipts bound to final asset SHA-256, generation cost/time availability and whether A/B records have matching `task_id` values, while withholding approval/causal claims. It is deliberately distinct from the synthetic statistical smoke tests.
+Read [REAL_PILOT_RUNBOOK.md](REAL_PILOT_RUNBOOK.md) before any real asset trial. The new read-only script checks concrete local asset hashes, links to hashed final-review receipts bound to final asset SHA-256, generation cost/time availability and whether A/B records have matching `task_id` values, while withholding approval/causal claims. It is deliberately distinct from the synthetic statistical smoke tests. The resulting report includes the exact input `records_sha256`; a failed/incomplete task's review does not count toward a completed task's missing final review; only completed tasks with their own verified deliverables and bound review receipts qualify.
 
 Run from the repository root:
 

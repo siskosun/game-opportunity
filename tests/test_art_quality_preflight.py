@@ -144,6 +144,48 @@ class RealBaselinePreflightTests(unittest.TestCase):
         self.assertFalse(out['baseline_capture_ready'])
         self.assertEqual(out['attempted_records'],1)
 
+    def test_failed_review_cannot_substitute_for_missing_completed_review(self):
+        # Two attempted A/B units. Only A is completed, but it has no final
+        # review. B failed and has a separately hashed, genuinely linked review
+        # of the abandoned artifact. Its review must not satisfy A's gate.
+        self.records['study_kind']='real'
+        b=copy.deepcopy(self.rec)
+        b['id']='failed-b'
+        b['condition']='B'
+        b['execution_status']='failed'
+        b['failure_reason']='abandoned the generated result'
+        b['final_quality']={'status':'reviewed','defects':[]}
+        file=self.root/'review.txt'
+        file.write_text('SYNTHETIC abandoned-asset feedback',encoding='utf-8')
+        b['final_review_evidence']={'path':'review.txt','sha256':evidence.digest(file),
+                                   'asset_sha256':evidence.digest(self.asset)}
+        self.records['records'].append(b)
+        result=preflight.assess(self.records,self.root)
+        self.assertTrue(result['ok'],result['file_errors'])
+        self.assertEqual(result['documented_final_review_files'],0)
+        self.assertEqual(result['completed_artifact_verified_records'],1)
+        self.assertFalse(result['baseline_capture_ready'])
+        self.assertFalse(result['paired_comparison_ready'])
+        self.assertTrue(any('diagnostic only' in w for w in result['warnings']))
+
+    def test_failed_asset_does_not_substitute_for_missing_completed_asset(self):
+        self.records['study_kind']='real'
+        b=copy.deepcopy(self.rec)
+        b['id']='failed-b'
+        b['condition']='B'
+        b['execution_status']='failed'
+        b['failure_reason']='abandoned image'
+        b['final_quality']={'status':'unknown'}
+        self.records['records'].append(b)
+        self.rec['attempts'][0]['artifact_path']=None
+        self.rec['attempts'][0]['review']={}
+        self.rec['attempts'][0]['failure_reason']='partial call failed'
+        output=preflight.assess(self.records,self.root)
+        self.assertEqual(output['artifact_verified_records'],1)
+        self.assertEqual(output['completed_artifact_verified_records'],0)
+        self.assertFalse(output['baseline_capture_ready'])
+        self.assertTrue(any('completed unit has no verified artifact' in e for e in output['file_errors']))
+
     def test_real_mock_with_missing_cost_and_human_marks_warning(self):
         self.records['study_kind']='real'
         self.rec['attempts'][0]['cost']=None

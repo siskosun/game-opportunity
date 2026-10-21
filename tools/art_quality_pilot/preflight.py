@@ -8,6 +8,7 @@ reviewers, or modify game-exp state. Exit 0: baseline capture has file evidence;
 from __future__ import annotations
 
 import argparse
+import hashlib
 from collections import defaultdict
 import json
 from pathlib import Path
@@ -48,6 +49,7 @@ def assess(data: dict, root: Path, *, frozen_upstream: Path | None = None) -> di
     pair: dict[tuple[str, str], set[str]] = defaultdict(set)
     seen_attempted = set()
     completed_with_files = 0
+    completed_with_verified_artifact = 0
     complete_time_records = 0
     complete_generation_records = 0
     documented_final_reviews = 0
@@ -125,16 +127,21 @@ def assess(data: dict, root: Path, *, frozen_upstream: Path | None = None) -> di
             receipt=rec["final_review_evidence"]
             valid,reason=_file_check(root,receipt.get("path"),receipt.get("sha256"),
                                      f"{rid}.final_review_evidence")
-            if valid and status == "completed" and receipt.get("asset_sha256") != last_artifact_sha:
+            if valid and (last_artifact_sha is None or receipt.get("asset_sha256") != last_artifact_sha):
                 valid=False
-                reason=f"{rid}.final_review_evidence: final asset sha256 mismatch"
+                reason=f"{rid}.final_review_evidence: final asset sha256 mismatch or no verified asset"
             if valid:
-                documented_final_reviews+=1
                 observations.append("review_file_sha256_verified")
+                if status == "completed":
+                    documented_final_reviews+=1
+                else:
+                    warnings.append(f"{rid}: review of a non-completed unit is diagnostic only; not a completed-artwork review")
             else:
                 issues.append(reason)
         if any(x=="artifact_sha256_verified" for x in observations) and not issues:
             completed_with_files+=1
+            if status == "completed":
+                completed_with_verified_artifact += 1
         sample_checks.append({"id":rid,"status":status,"evidence_files_verified":observations.count("artifact_sha256_verified"),
                               "issues":issues,"observations":sorted(set(observations))})
         errors.extend(issues)
@@ -147,7 +154,7 @@ def assess(data: dict, root: Path, *, frozen_upstream: Path | None = None) -> di
                     and complete_generation_records==len(seen_attempted)
                     and documented_final_reviews==successful_records
                     and failure_records_documented==len(seen_attempted)-successful_records
-                    and completed_with_files>=successful_records)
+                    and completed_with_verified_artifact==successful_records)
     # A/B pairing is structural only. Fairness and independent human identity
     # are not verified, even when ready_for_review is true.
     comparison_ready=baseline_ready and bool(paired)
@@ -159,6 +166,7 @@ def assess(data: dict, root: Path, *, frozen_upstream: Path | None = None) -> di
             "study_id":data["study_id"],"study_kind":data["study_kind"],"baseline_capture_ready":baseline_ready,
             "paired_comparison_ready":comparison_ready,
             "attempted_records":len(seen_attempted),"artifact_verified_records":completed_with_files,
+            "completed_artifact_verified_records":completed_with_verified_artifact,
             "file_intake_ready":receipts_ready,"time_observed_records":complete_time_records,
             "generation_time_and_cost_observed_records":complete_generation_records,
             "documented_final_review_files":documented_final_reviews,
@@ -176,8 +184,10 @@ def main() -> int:
     try:
         if args.out and (args.out.exists() or args.out.is_symlink()):
             raise ValueError("report path already exists")
-        data=json.loads(args.records.read_text(encoding="utf-8-sig"))
+        raw_records=args.records.read_bytes()
+        data=json.loads(raw_records.decode("utf-8-sig"))
         result=assess(data,args.root)
+        result["records_sha256"]=hashlib.sha256(raw_records).hexdigest()
         body=json.dumps(result,ensure_ascii=False,indent=2,allow_nan=False)+"\n"
         if args.out:
             with args.out.open("x", encoding="utf-8") as output:
