@@ -32,3 +32,12 @@
 - 测试对应的 T1 可运行 `dist/index.html` SHA 为 `317e8c4fab79f6f51a1a1872faa22a833a1d0c5024ae607ce56e0b86f98e011c`，JS SHA 为 `ccd61ae72d9e0fa0205d77cccf6761323ed8a18a9f75a477c446446ab0e79e19`；评审 ZIP 的 SHA-256 为 `9ae82a79365bbc6342135e02f20f31200f24453fdf470b3d49dd37be7bff28b3`，离线 20 文件校验通过。
 - 资料空间：`/游戏开发方案/ET-VISUAL-01-草案/ET-VISUAL-02-触控T1-待评审/`；代码在 `siskosun/game-opportunity` Draft PR #13 的 `touch_t1/`。原 R2 归档与 pointer 不变，Echo Tide 主线及受保护的 game-exp Ledger 未修改。
 - **下一道用户门槛：** 复评 T1 的竖屏/横屏按钮位置、触控手感；随后使用 Android/iOS 实机以及真实完整关卡试玩，禁止用 CI 代替玩家验收。未经人审不合并。
+
+## 2026-10-21 · 竖屏 T1 已被否定，T2 仍待复评（最新）
+
+- 用户对 T1 反馈原话：**“横屏没问题，竖屏操作很反人性”**。本次反馈对 T1 竖屏操作形成否定结论；**横屏维持 T1，不需要重做**。T1 原始按钮全放在同一行，左右拇指分区不清晰。这是用户主观体验反馈，不能被之前自动 CI 的 PASS 抵消。
+- 实施 **T2 portrait-thumbzones**：仅在 `max-width:580px & orientation:portrait` 的 CSS 规则下将移动键分组固定在左下，跳跃+冲刺固定在右下，锚定单独置于右手区上方。视觉 R2、游戏核心、T1 横屏及触控 JS 均未修改；新候选未人工批准。
+- [Chrome 触摸 CI #39576897475](https://github.com/siskosun/game-opportunity/actions/runs/39576897475) 与 [常规 CI #39576902951](https://github.com/siskosun/game-opportunity/actions/runs/39576902951) 均通过；69 项游戏测试、7 项触控单元测试、R2 状态语义测试通过。Chrome 155 模拟视口 360×640、360×800、390×844、844×390、1280×900，均无横向溢出、脚本/网络错误、控件遮挡；移动视口完成真实 CDP 触摸事件模拟。
+- 横屏 T1 与 T2 两侧按钮、顶部工具栏截图区域逐像素一致；中心游戏动态物件存在因截图时刻造成的差异。T2 `dist/index.html` SHA-256：`2c51a8f7665a4eb292eb15100e83e254f4d25de9a6cc89b5102179147da8f922`；JS SHA-256：`ccd61ae72d9e0fa0205d77cccf6761323ed8a18a9f75a477c446446ab0e79e19`，后者与 T1 原始构建完全相同。
+- 用户复评 ZIP `ET_VISUAL_02_touch_T2_review.zip` SHA-256：`2553fcc27f6c9cd84342dfc2f0a02eeec3cffb8a5c680e70ccabce5620dd8797`；21 项文件独立哈希校验通过。目录：`/游戏开发方案/ET-VISUAL-01-草案/ET-VISUAL-02-触控T2-待评审/`。
+- **现行已选视觉基线仍为 02-R2**；操作布局只在 T2 候选中待用户二次评价。真机 iOS/Android、多关真人游玩、手感和 Art Director / game-exp 生产批准依然未完成；PR #13 保持 Draft，未合并 Echo Tide main，不写受保护 Ledger。
