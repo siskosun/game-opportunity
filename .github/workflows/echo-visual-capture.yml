@@ -10,6 +10,7 @@ on:
       - tools/art_quality_pilot/fixtures/echo-tide-visual-draft/style-pack.json
 permissions:
   contents: read
+  actions: read
 
 jobs:
   visual-capture:
@@ -76,6 +77,14 @@ jobs:
             sleep 0.3
           done
           ECHO_PLAYWRIGHT_ROOT="$RUNNER_TEMP/art-capture-browser" node tools/art_quality_pilot/capture_echo_tide.mjs
+      - name: Recover frozen original screenshot references
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts/echo-visual-frozen
+          gh run download 39535419154 -R siskosun/game-opportunity -n echo-tide-frozen-browser-evidence -D artifacts/echo-visual-frozen
       - name: Validate and build unapproved Art Director B-group pack
         shell: bash
         run: |
@@ -84,8 +93,19 @@ jobs:
           mkdir -p "$source_dir/references"
           cp tools/art_quality_pilot/fixtures/echo-tide-visual-draft/style-pack.json "$source_dir/style-pack.json"
           for name in desktop-initial-canvas.png mobile-portrait-initial-viewport.png mobile-landscape-initial-viewport.png mobile-landscape-after-input-canvas.png; do
-            cp "artifacts/echo-visual/$name" "$source_dir/references/$name"
+            cp "artifacts/echo-visual-frozen/$name" "$source_dir/references/$name"
           done
+          python - <<'PYREFERENCES'
+          import hashlib, json, pathlib
+          root=pathlib.Path('artifacts/et-visual-style-source')
+          data=json.loads((root/'style-pack.json').read_text(encoding='utf-8'))
+          for ref in data['references']:
+              actual=hashlib.sha256((root/ref['path']).read_bytes()).hexdigest()
+              expected=ref['provenance']['sha256']
+              if actual!=expected:
+                  raise SystemExit(f'frozen reference SHA mismatch: {ref["id"]}: {actual} != {expected}')
+          print('FROZEN_REFERENCE_SHA_MATCH',len(data['references']))
+          PYREFERENCES
           python _art_director/scripts/style_pack.py validate "$source_dir" > artifacts/et-visual-validate.json
           python _art_director/scripts/style_pack.py build "$source_dir" --out artifacts/et-visual-built > artifacts/et-visual-build.json
           python _art_director/scripts/style_pack.py verify artifacts/et-visual-built > artifacts/et-visual-verify.json
