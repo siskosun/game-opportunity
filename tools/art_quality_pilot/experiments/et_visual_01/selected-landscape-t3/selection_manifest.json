@@ -1,0 +1,32 @@
+{
+  "schema": "et-visual-02-landscape-only-selected-v1",
+  "selected_on": "2026-10-21",
+  "visual_baseline": "candidate-02-r2",
+  "mobile_control_baseline": "landscape-only-t3",
+  "user_decision": "mobile_phone_landscape_only",
+  "user_approved_design_direction": true,
+  "human_device_acceptance": false,
+  "production_release_approved": false,
+  "game_exp_lifecycle_mutated": false,
+  "echo_tide_main_modified": false,
+  "source_game_commit": "38b9daa1adf78002c8ec5349c269a4ce31959d8f",
+  "trial_git_commit": "6e05262b9ec8caa8a7c2a55286e4775bf12a3c40",
+  "chrome_qa_run": 39579632465,
+  "chrome_qa_url": "https://github.com/siskosun/game-opportunity/actions/runs/39579632465",
+  "playable_html_sha256": "b12b74cca5574fcbc62b6e039691097b2b3438c3977ae924f92a4fdc03e33d74",
+  "playable_js_sha256": "d9f50030f85d40279f37c23590dc72039a1941421ebe77a2d0b776b7f6eedd63",
+  "old_review_archive_sha256": "2b544e6d7156b1f34bccdab2f9d922d82ce22aa7ed8e2d50acaff4528c942707",
+  "files": {
+    "DECISION.md": "44bab3f5b1d5700210e2580ad66b5653f8bbcaf2e2436e3ac383fb33eb71776f",
+    "NEXT_DEVICE_QA.md": "4f99785221e51ca345c461ce1c34dc1120a8252d45c7c6495dea5c3f030a0fab",
+    "README.md": "c50d9f743137d3c9ae2d3c09e90103070990b91b8d416164351167532f00c17d",
+    "evidence/fontconfig.txt": "1507456b80220765551152bcbb097afd44d66ef4df03861ac60227381f43ac37",
+    "evidence/touch-t3-lineage.json": "8ca071478db56fe1ad8a635fb62d75a2cf9ffdccb379ff123c0dd6533bfad339",
+    "evidence/touch-t3-qa.json": "35c9cf6d07892e1050fcbd5eca216caaa01239ac0fa1daa19ad2bb4507272a9e",
+    "playable-dist/assets/index-CpvuAAaO.js": "d9f50030f85d40279f37c23590dc72039a1941421ebe77a2d0b776b7f6eedd63",
+    "playable-dist/index.html": "b12b74cca5574fcbc62b6e039691097b2b3438c3977ae924f92a4fdc03e33d74",
+    "screens/landscape-844.png": "c29ef91b868a138f1dca8660b941ecf4a6fa16bec80a558cd010b2aed3a7f8f9",
+    "screens/portrait-390.png": "9c7b5541e1c1d771b9136a3b8cf37f70eddb5e7b6c39617fe93476d6cee0ff15",
+    "screens/rotate-to-landscape.png": "c86e6b41d8081bf11853ee83d2771ee7c24892c7752533b3b145ac6e9d8eab02"
+  }
+}

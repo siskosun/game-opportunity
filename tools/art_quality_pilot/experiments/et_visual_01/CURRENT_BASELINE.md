@@ -53,3 +53,11 @@
 - T3 HTML 构建 SHA-256 `b12b74cca5574fcbc62b6e039691097b2b3438c3977ae924f92a4fdc03e33d74`；JS SHA-256 `d9f50030f85d40279f37c23590dc72039a1941421ebe77a2d0b776b7f6eedd63`。可运行复评包 SHA-256 `2b544e6d7156b1f34bccdab2f9d922d82ce22aa7ed8e2d50acaff4528c942707`。
 - 资料空间：`/游戏开发方案/ET-VISUAL-01-草案/ET-VISUAL-02-触控T3-待评审/`，代码 [PR #13](https://github.com/siskosun/game-opportunity/pull/13) 仍 Draft 未合并。
 - **尚未验证**：T3 横屏优先策略是否符合用户目标，手机 iOS/Android 真机旋转/触控及整关体验。当前项目不是 game-exp 新实验，未写 Review PASS/SELECTED，原 Echo Tide main 与受保护 Ledger 未更改。
+
+## 2026-10-21 · 用户明确改为仅横屏游玩（覆盖早前“T3 待审”状态）
+
+- 用户确认问句“手机端是否直接改成仅支持横屏游玩？”，回答 **“改”**。**当前移动端操作决策：横屏游玩，T3 竖屏旋转提示已被选定**，不再是待定方向。T1 横屏双侧按键继续沿用；T1/T2 竖屏按键路线均已被否决。
+- **视觉基线不变**：ET-VISUAL-02 / 02-R2。**操作方向基线**：T3 横屏优先（T1 横屏输入 + 竖屏暂停及提示）；两条基线分别记录。
+- 精确可运行试用包 **ET_VISUAL_02_landscape_only_T3_selected_v1.zip**，SHA-256 **72fd38c07e60a941b77ee4b7a8ade887f3bdba35b7809ef67a1f6916c41834cb**；包内 HTML、JS 字节与 [Chrome QA #39579632465](https://github.com/siskosun/game-opportunity/actions/runs/39579632465) 所测完全一致，11 项源证据/说明文件哈希校验通过。
+- 资料空间：`/游戏开发方案/ET-VISUAL-01-草案/选定移动操控-横屏T3-v1/`；原 `ET-VISUAL-02-触控T3-待评审/` 仍保留为历史快照。
+- **验收边界**：用户批准的是设计方向，不是真机 PASS、生产发布、game-exp `Review PASS` 或 `SELECTED` 或自动合并授权。Android / iOS 真机、旋转锁定及完整关卡体验待测；原 main 与 protected Ledger 暂无合并或改写。
