@@ -36,14 +36,15 @@ async function save(page,relative){
 }
 function listen(page){const errors=[];page.on('pageerror',e=>errors.push('pageerror:'+String(e)));
  page.on('console',m=>{if(m.type()==='error')errors.push('console:'+m.text())});
- page.on('requestfailed',r=>errors.push('network:'+r.url()));return errors;}
+ page.on('requestfailed',r=>errors.push('network:'+r.url()));
+ page.on('response',r=>{if(r.status()>=400)errors.push('HTTP '+r.status()+':'+r.url());});return errors;}
 try{
  for(const viewport of viewports){
   const context=await browser.newContext({viewport:{width:viewport.width,height:viewport.height},deviceScaleFactor:1});
   await context.addInitScript(()=>{const original=Crypto.prototype.getRandomValues;Crypto.prototype.getRandomValues=function(a){if(a instanceof Uint32Array&&a.length===1){a[0]=3;return a;}return original.call(this,a);};});
   const page=await context.newPage(),errors=listen(page);
   const response=await page.goto(origin+'/',{waitUntil:'networkidle',timeout:30000});
-  await page.waitForSelector('#et-readable-hud[data-state]',{state:'attached',timeout:15000});
+  await page.waitForSelector('#et-readable-hud[data-state]',{timeout:15000});
   const snapshot=async()=>page.evaluate(()=>{
     const hud=document.getElementById('et-readable-hud');
     const canvas=document.getElementById('game');const bbox=canvas.getBoundingClientRect();

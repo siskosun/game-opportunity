@@ -57,7 +57,7 @@ const css = `
 }
 `;
 let html = one(beforeIndex, '      <canvas id="game"', htmlMarkup+'      <canvas id="game"', 'game canvas anchor');
-html = one(html, '</head>', `<style id="et-visual-hud-r2">${css}</style>\n  </head>`, 'style head');
+html = one(html, '</head>', `<style id="et-visual-hud-r2">${css}</style>\n  <link rel="icon" href="data:,">\n  </head>`, 'style head');
 let main = one(beforeMain,
   "import { draw } from './render.js';",
   "import { draw } from './render.js';\nimport { renderVisualHud } from './visual_hud.js';", 'renderer import');
