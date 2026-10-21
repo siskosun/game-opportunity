@@ -54,7 +54,7 @@ All referenced `asset` and `execution` paths are relative to `--root` and must e
 
 ## Real baseline preflight (P0-C preparation)
 
-Read [REAL_PILOT_RUNBOOK.md](REAL_PILOT_RUNBOOK.md) before any real asset trial. The new read-only script checks concrete local asset hashes, links to frozen review files, actual time availability and whether A/B records have matching `task_id` values, while withholding approval/causal claims. It is deliberately distinct from the synthetic statistical smoke tests.
+Read [REAL_PILOT_RUNBOOK.md](REAL_PILOT_RUNBOOK.md) before any real asset trial. The new read-only script checks concrete local asset hashes, links to hashed final-review receipts bound to final asset SHA-256, generation cost/time availability and whether A/B records have matching `task_id` values, while withholding approval/causal claims. It is deliberately distinct from the synthetic statistical smoke tests.
 
 Run from the repository root:
 

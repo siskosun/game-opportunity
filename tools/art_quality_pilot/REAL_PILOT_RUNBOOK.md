@@ -22,7 +22,7 @@ Start from the upstream [pilot-records.template.json](https://github.com/Newener
 2. Freeze A/B `task_id`, task brief, source set hashes, Art Director pack version/fingerprint, review rubric and planned budget. The pack is not a human endorsement by itself.
 3. For each *actual* attempt, append one attempt number, tool, model/version, elapsed time, cost/currency, actual reference inputs, unselected returned images and selection rule, final artifact path plus its SHA-256. Preserve tool failures with null artifact, not fictitious successful images.
 4. Per run-unit record `manual_work_minutes`, `review_minutes`, final-quality defect list with severity and whether the revision introduced it. Missing values remain `null`; never fill with zero for convenience. Track review source identity and independence separately, with an authorized original evidence file.
-5. For reviewed units optionally add `final_review_evidence: {path: "reviews/a.txt", sha256: "..."}` pointing to the frozen review receipt. This **sidecar extension** does not authenticate a human; an independent adjudicator must still confirm who reviewed what. `preflight.py` verifies file existence and hash only.
+5. For reviewed units optionally add `final_review_evidence: {path: "reviews/a.txt", sha256: "...", asset_sha256: "<final artwork SHA-256>"}` pointing to the frozen review receipt. This **sidecar extension** does not authenticate a human; an independent adjudicator must still confirm who reviewed what. `preflight.py` verifies file existence and hash only.
 6. Run the existing browser/Godot asset-in-context checks at the target actual display size; record unresolved engine/device checks as unknown, not pass. Fix budget, input selection and final checklist across conditions.
 
 ## Preflight commands
@@ -40,7 +40,7 @@ The paths above are **illustrative**, not existing files. On Windows use real Wi
 Preflight checks: source asset byte hash, optional reference-file hashes, optional frozen final review file, whether original result and elapsed/manual/review timing are present, and whether exact `task_id` is represented in both A and B for the same cohort. It reports `not_run`, failures, missingness and incomplete or mismatched input records.
 
 - `file_intake_ready`: genuine-record *claim* and verified asset file bytes; not a verified real-world production event.
-- `baseline_capture_ready`: available timed records and a hashed final review file for each completed unit, with explicit failure reasons for unsuccessful units. **Still requires independent authentication and inspection**.
+- `baseline_capture_ready`: available manual/review minutes and observed generation time/cost for every attempted unit; a hashed final review file **bound to the final asset SHA** for each completed unit; explicit failure reasons for unsuccessful units. An early failed generation with no output is valid when a later attempt produced the finished asset. **Still requires independent authentication and inspection**.
 - `paired_comparison_ready`: both conditions exist under an identical task identity and record completeness is sufficient; **does not prove input fairness, blind reviewers, independent real-world execution or a causal effect**.
 - `production_approved`: always false.
 - Exit `0`: inputs are structurally complete enough to request independent review, not a PASS/approval. Exit `1`: records incomplete/not comparable. Exit `2`: invalid input.

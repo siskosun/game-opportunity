@@ -73,7 +73,8 @@ class RealBaselinePreflightTests(unittest.TestCase):
         file=self.root/'review.txt'
         file.write_text('Mock verdict with no genuine human authorization', encoding='utf-8')
         self.rec['final_quality']={'status':'reviewed','defects':[]}
-        self.rec['final_review_evidence']={'path':'review.txt','sha256':evidence.digest(file)}
+        self.rec['final_review_evidence']={'path':'review.txt','sha256':evidence.digest(file),
+                                            'asset_sha256':evidence.digest(self.asset)}
         out=preflight.assess(self.records,self.root)
         self.assertTrue(out['baseline_capture_ready'],out)
         self.assertFalse(out['production_approved'])
@@ -100,13 +101,37 @@ class RealBaselinePreflightTests(unittest.TestCase):
         self.records['records'][0]['attempts'][0]['artifact_path']='../unsafe.png'
         self.assertTrue(preflight.assess(self.records,self.root)['file_errors'])
 
+    def test_completed_with_an_early_failed_attempt_is_valid(self):
+        self.records['study_kind']='real'
+        self.rec['attempts'].insert(0,{
+            'attempt':1,'artifact_path':None,'review':{},
+            'failure_reason':'transient generator failure','tool':'mock-tool',
+            'model':'mock-model','elapsed_minutes':0.5,'cost':0.0,'currency':'USD'
+        })
+        self.rec['attempts'][1]['attempt']=2
+        out=preflight.assess(self.records,self.root)
+        self.assertTrue(out['ok'],out['file_errors'])
+        self.assertEqual(out['artifact_verified_records'],1)
+        self.assertTrue(out['file_intake_ready'])
+        self.assertFalse(out['baseline_capture_ready']) # no final review receipt
+
+    def test_final_review_evidence_must_bind_final_asset(self):
+        self.records['study_kind']='real'
+        self.rec['final_quality']={'status':'reviewed','defects':[]}
+        file=self.root/'review.txt'; file.write_text('MOCK only',encoding='utf-8')
+        self.rec['final_review_evidence']={'path':'review.txt','sha256':evidence.digest(file),
+                                            'asset_sha256':'f'*64}
+        result=preflight.assess(self.records,self.root)
+        self.assertFalse(result['ok'])
+        self.assertIn('final asset sha256 mismatch',json.dumps(result['file_errors']))
+
     def test_missing_artifact_does_not_become_zero_defect(self):
         self.records['study_kind']='real'
         self.records['records'][0]['attempts'][0]['artifact_path']=None
         out=preflight.assess(self.records,self.root)
         self.assertFalse(out['baseline_capture_ready'])
         self.assertFalse(out['production_approved'])
-        self.assertIn('without artifact',json.dumps(out))
+        self.assertIn('no verified artifact',json.dumps(out))
 
     def test_failed_tool_call_can_have_no_image(self):
         self.records['study_kind']='real'

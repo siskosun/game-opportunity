@@ -49,6 +49,7 @@ def assess(data: dict, root: Path, *, frozen_upstream: Path | None = None) -> di
     seen_attempted = set()
     completed_with_files = 0
     complete_time_records = 0
+    complete_generation_records = 0
     documented_final_reviews = 0
     failure_records_documented = 0
     successful_records = 0
@@ -68,6 +69,8 @@ def assess(data: dict, root: Path, *, frozen_upstream: Path | None = None) -> di
         else:
             warnings.append(f"{rid}: failed/incomplete unit without an explicit failure_reason")
         pair[(rec["cohort"],rec["task_id"])].add(rec["condition"])
+        generation_metadata_complete = True
+        last_artifact_sha = None
         for idx, attempt in enumerate(rec["attempts"]):
             label = f"{rid}.attempts[{idx}]"
             artifact_path = attempt.get("artifact_path")
@@ -75,10 +78,13 @@ def assess(data: dict, root: Path, *, frozen_upstream: Path | None = None) -> di
                 success, explanation = _file_check(root, artifact_path, attempt.get("artifact_sha256"), label + ".artifact")
                 if success:
                     observations.append("artifact_sha256_verified")
+                    last_artifact_sha = attempt["artifact_sha256"]
                 else:
                     issues.append(explanation)
-            elif status == "completed" or (attempt.get("review") or {}).get("identity") == "pass":
-                issues.append(label + ": completed or identity-pass attempt without artifact")
+            elif any(v == "pass" for v in (attempt.get("review") or {}).values()):
+                issues.append(label + ": passed review without any artifact")
+            elif not attempt.get("failure_reason"):
+                warnings.append(label + ": no output, but failure reason is not recorded")
             if not attempt.get("tool") or not attempt.get("model"):
                 warnings.append(label + ": tool/model provenance incomplete")
             if artifact_path and not attempt.get("review_evidence"):
@@ -88,6 +94,7 @@ def assess(data: dict, root: Path, *, frozen_upstream: Path | None = None) -> di
                 warnings.append(label + ": visual inspection not recorded")
             if attempt.get("elapsed_minutes") is None or attempt.get("cost") is None:
                 warnings.append(label + ": elapsed time or generation cost unobserved")
+                generation_metadata_complete = False
             for j, input_ref in enumerate(attempt.get("actual_reference_inputs") or []):
                 if not isinstance(input_ref,dict):
                     issues.append(f"{label}.actual_reference_inputs[{j}]: not an object")
@@ -101,6 +108,10 @@ def assess(data: dict, root: Path, *, frozen_upstream: Path | None = None) -> di
                         issues.append(why)
                 else:
                     warnings.append(f"{label}.actual_reference_inputs[{j}]: input bytes not locatable")
+        if status == "completed" and last_artifact_sha is None:
+            issues.append(f"{rid}: completed unit has no verified artifact")
+        if generation_metadata_complete and rec["attempts"]:
+            complete_generation_records += 1
         if rec.get("manual_work_minutes") is not None and rec.get("review_minutes") is not None:
             complete_time_records += 1
         else:
@@ -111,8 +122,12 @@ def assess(data: dict, root: Path, *, frozen_upstream: Path | None = None) -> di
         elif not isinstance(rec.get("final_review_evidence"), dict):
             warnings.append(f"{rid}: final_quality is self-reported without independent review source")
         else:
-            valid,reason=_file_check(root,rec["final_review_evidence"].get("path"),
-                                     rec["final_review_evidence"].get("sha256"),f"{rid}.final_review_evidence")
+            receipt=rec["final_review_evidence"]
+            valid,reason=_file_check(root,receipt.get("path"),receipt.get("sha256"),
+                                     f"{rid}.final_review_evidence")
+            if valid and status == "completed" and receipt.get("asset_sha256") != last_artifact_sha:
+                valid=False
+                reason=f"{rid}.final_review_evidence: final asset sha256 mismatch"
             if valid:
                 documented_final_reviews+=1
                 observations.append("review_file_sha256_verified")
@@ -129,6 +144,7 @@ def assess(data: dict, root: Path, *, frozen_upstream: Path | None = None) -> di
     # and need an explicit failure reason, not a fictitious final artwork.
     receipts_ready=(data["study_kind"]=="real" and not errors and completed_with_files>0)
     baseline_ready=(receipts_ready and complete_time_records==len(seen_attempted)
+                    and complete_generation_records==len(seen_attempted)
                     and documented_final_reviews==successful_records
                     and failure_records_documented==len(seen_attempted)-successful_records
                     and completed_with_files>=successful_records)
@@ -144,6 +160,7 @@ def assess(data: dict, root: Path, *, frozen_upstream: Path | None = None) -> di
             "paired_comparison_ready":comparison_ready,
             "attempted_records":len(seen_attempted),"artifact_verified_records":completed_with_files,
             "file_intake_ready":receipts_ready,"time_observed_records":complete_time_records,
+            "generation_time_and_cost_observed_records":complete_generation_records,
             "documented_final_review_files":documented_final_reviews,
             "paired_task_count":len(paired),"paired_tasks":paired,
             "file_errors":errors,"warnings":warnings,"samples":sample_checks,"production_approved":False,
