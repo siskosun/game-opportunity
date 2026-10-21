@@ -26,6 +26,7 @@ const shared = `
 /* Exploration only: responsive artwork presentation for ET-VISUAL-01. */
 :root { color-scheme: dark; }
 @media (max-width: 900px) {
+  *, *::before, *::after { box-sizing: border-box; }
   html, body { margin: 0; width: 100%; }
   body { display: block; padding: 6px; }
   .wrap { width: 100%; display: flex; flex-direction: column; max-width: none; }
