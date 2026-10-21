@@ -1,0 +1,112 @@
+name: ET-VISUAL-02 live-HUD and semantic-scene QA (unapproved)
+on:
+  push:
+    branches: [feat/art-quality-p0-evidence-20261020]
+    paths:
+      - .github/workflows/et-visual-qa-r2.yml
+      - tools/art_quality_pilot/experiments/et_visual_01/r2/**
+permissions:
+  contents: read
+jobs:
+  visual-qa:
+    name: Frozen R1 -> 02-R2, core tests + browser scene evidence
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - name: Checkout trial-only code
+        uses: actions/checkout@v4
+      - name: Checkout frozen Echo Tide source without write credentials
+        uses: actions/checkout@v4
+        with:
+          repository: siskosun/echo-tide
+          ref: 38b9daa1adf78002c8ec5349c269a4ce31959d8f
+          path: _trial_echo
+          persist-credentials: false
+      - name: Setup Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Apply frozen selected 02-R1 then create new R2 only
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git -C _trial_echo rev-parse HEAD)" = 38b9daa1adf78002c8ec5349c269a4ce31959d8f
+          node tools/art_quality_pilot/experiments/et_visual_01/r2/apply_r2.mjs _trial_echo
+          test -z "$(git -C _trial_echo diff --name-only -- src/game.js src/render.js src/levels.js src/route_fork.js src/airborne_bridge.js)"
+          test -f _trial_echo/src/visual_hud.js
+      - name: Test actual game logic and UI semantic mapping
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm ci --prefix _trial_echo
+          npm test --prefix _trial_echo
+          node tools/art_quality_pilot/experiments/et_visual_01/r2/r2_semantics.mjs _trial_echo
+          npm run build --prefix _trial_echo
+      - name: Freeze input-only winning traces for test-only browser scenes
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --input-type=module <<'NODE'
+          import { playRoom } from './_trial_echo/test/campaign-driver.js';
+          import { writeFileSync } from 'node:fs';
+          const result={};
+          for(let room=0;room<3;room++){
+            const actual=playRoom(room);
+            if(actual.game.status!=='won')throw new Error('Room did not complete');
+            result[`room${room+1}`]=actual.inputs;
+          }
+          writeFileSync('_trial_echo/visual-eval/winning-inputs.json',JSON.stringify(result)+'\n',{flag:'wx'});
+          console.log('Frozen input-only winning route frames:',Object.fromEntries(Object.entries(result).map(([k,v])=>[k,v.length])));
+          NODE
+          cp tools/art_quality_pilot/experiments/et_visual_01/r2/qa_states.html _trial_echo/qa_states.html
+      - name: Install isolated Chrome runner and Chinese font
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/et-r2-playwright" artifacts/et-visual-02-r2
+          npm install --prefix "$RUNNER_TEMP/et-r2-playwright" --no-save --ignore-scripts playwright@1.56.1
+          sudo apt-get update -qq
+          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends fonts-noto-cjk
+          fc-cache -f
+          fc-match -f '%{family} | %{file}\n' 'Noto Sans CJK SC' > artifacts/et-visual-02-r2/fontconfig.txt
+      - name: Run two isolated local servers and capture source-linked visual states
+        shell: bash
+        env:
+          ECHO_VISUAL_SOURCE: _trial_echo
+          ECHO_VISUAL_OUTPUT: artifacts/et-visual-02-r2
+          ECHO_VISUAL_ORIGIN: http://127.0.0.1:8765
+          ECHO_QA_ORIGIN: http://127.0.0.1:8766
+        run: |
+          set -euo pipefail
+          python3 -m http.server 8765 --bind 127.0.0.1 --directory _trial_echo/dist > "$RUNNER_TEMP/et-r2-dist.log" 2>&1 &
+          dist_pid=$!
+          python3 -m http.server 8766 --bind 127.0.0.1 --directory _trial_echo > "$RUNNER_TEMP/et-r2-source.log" 2>&1 &
+          core_pid=$!
+          trap 'kill "$dist_pid" "$core_pid" 2>/dev/null || true' EXIT
+          for i in $(seq 1 35); do
+            if curl -fsS http://127.0.0.1:8765/ >/dev/null && curl -fsS http://127.0.0.1:8766/qa_states.html >/dev/null; then break; fi
+            sleep 0.3
+          done
+          ECHO_PLAYWRIGHT_ROOT="$RUNNER_TEMP/et-r2-playwright" node tools/art_quality_pilot/experiments/et_visual_01/r2/capture_r2.mjs
+      - name: Check all browser scenes against exact built output
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --input-type=module <<'NODE'
+          import { readFileSync, cpSync } from 'node:fs';
+          const report=JSON.parse(readFileSync('artifacts/et-visual-02-r2/runtime-report.json'));
+          if(!report.technical_ok || report.live_pages.length!==4 || report.state_mirrors.length!==7)throw Error('Incomplete QA coverage');
+          if(!report.live_pages.every(x=>x.passed) || !report.state_mirrors.every(x=>x.passed))throw Error('Visual failure');
+          if(report.live_pages.flatMap(x=>x.screenshots).length!==12 || report.state_mirrors.length!==7)throw Error('Incomplete captures');
+          cpSync('_trial_echo/dist','artifacts/et-visual-02-r2/playable-dist',{recursive:true});
+          cpSync('_trial_echo/visual-eval/r2-lineage.json','artifacts/et-visual-02-r2/r2-lineage.json');
+          console.log('All actual Chrome viewport checks and source-core scenes passed');
+          NODE
+      - name: Preserve evidence even on failed assertions
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: et-visual-02-r2-trial-and-qa
+          path: artifacts/et-visual-02-r2/
+          if-no-files-found: warn
+          retention-days: 14

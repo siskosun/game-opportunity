@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ET-VISUAL-02 生产引擎场景取样 · QA ONLY</title>
+<style>
+  html,body{margin:0;box-sizing:border-box;background:#08131a;color:#f1e9c9;font-family:"Noto Sans CJK SC","Microsoft YaHei",system-ui,sans-serif}
+  *,*::before,*::after{box-sizing:inherit}
+  body{padding:8px 10px}
+  h1{font-size:14px;margin:0 0 4px;color:#a4ffdf}
+  .meta{font-size:12px;line-height:17px;color:#c9d4c9;margin:0 0 5px}
+  .cue{display:grid;gap:3px;background:#11343c;border:1px solid #ffdeb4;border-radius:6px;padding:6px 8px;margin:0 0 6px;text-align:left;font-size:13px}
+  .cue span{display:block}
+  .stage{width:min(100%,960px,calc((100dvh - 137px) * 16 / 9));margin:0 auto}
+  canvas{display:block;width:100%;height:auto;border:2px solid #6ee4d0;border-radius:6px}
+  .foot{font-size:11px;color:#b5bbc1;margin:6px 0 0}
+</style>
+</head>
+<body>
+<h1>视觉状态验证 · 非真实玩家界面</h1>
+<p class="meta" id="scenario-label">加载中...</p>
+<div class="cue" id="semantic-preview"><span id="cue-goal"></span><span id="cue-text"></span></div>
+<div class="stage"><canvas id="test-game" width="960" height="540"></canvas></div>
+<p class="foot">画布调用与游戏一致的原版核心和选定渲染器。阻塞边界为合成夹具；轨道/通关为真实输入序列。</p>
+<script type="module">
+import { createGame, update, ECHO, PLAYER, airborneForecast, echoMotionPlan } from './src/game.js';
+import { draw } from './src/render.js';
+import { describeVisualHud } from './src/visual_hud.js';
+const scenario = new URLSearchParams(location.search).get('scenario');
+const tick=(game,input={})=> update(game,input,1/60);
+function check(condition,message){ if(!condition)throw new Error(message); }
+async function makeScenario(){
+ let provenance='input-only-production-core';
+ let game=createGame({level:1,seed:3,challenge:true,surf:true});
+ let prior=null;
+ if(['rail-preview','rail-inflight'].includes(scenario)){
+   for(let i=0;i<90&&!game.route.revealed;i++)game=tick(game,{right:true,jump:i<18});
+   check(game.route.revealed && game.player.supportId==='echo-1','First landing did not reveal route');
+   for(let i=0;i<15;i++)game=tick(game);
+   const forecast=airborneForecast(game);
+   check(!forecast.blocked && forecast.target?.role==='echo','Moving rail target unavailable');
+   const motion=echoMotionPlan(game,forecast.target);
+   check(!!motion?.active,'Moving rail not active');
+   prior={forecast,plan:motion};
+   if(scenario==='rail-inflight') {
+      game=tick(game,{jump:true});
+      check(!!game.flightBridgeId,'Flight bridge not minted');
+      for(let i=0;i<24;i++)game=tick(game,{jump:i<18});
+      const echo=game.echoes.find(x=>x.id===game.flightBridgeId);
+      check(!!echo?.motion?.active,'Actual flight rail stopped unexpectedly');
+      prior.current_moving_collision_x=echo.x;
+      check(Math.abs(echo.x-motion.startX)>1,'Motion must be visible in screenshot');
+   }
+ } else if(scenario==='blocked-edge') {
+    provenance='SYNTHETIC-EDGE-FIXTURE-using-production-forecast-and-renderer';
+    game=createGame({level:1,seed:7,challenge:true,surf:true});
+    game.echoes=[{id:'echo-1',x:960-80-18,y:402,w:80,h:ECHO.h,phase:'solid',age:0}];
+    game.nextId=2;game.route={revealed:true,side:'right'};
+    Object.assign(game.player,{x:960-PLAYER.w-10,y:402-PLAYER.h,vx:0,vy:0,grounded:true,supportId:'echo-1',facing:1});
+    const prediction=airborneForecast(game);
+    check(prediction.blocked && !prediction.target,'Edge fixture must really block new landing');
+    prior={forecast:prediction};
+ } else if(scenario==='lost') {
+    provenance='SYNTHETIC-FALL-TRIGGER-using-production-update';
+    game=createGame({level:1,seed:3,challenge:true,surf:true});
+    Object.assign(game.player,{y:560,grounded:false,supportId:null});
+    game=tick(game);check(game.status==='lost','Expected actual loss state');
+ } else if(scenario?.startsWith('won-room')) {
+   const room=Number(scenario.slice(-1))-1;
+   check([0,1,2].includes(room),'Invalid room');
+   const response=await fetch('/visual-eval/winning-inputs.json');
+   check(response.ok,'Missing frozen input-only winning trace');
+   const traces=await response.json();
+   const inputs=traces[`room${room+1}`];
+   check(Array.isArray(inputs) && inputs.length>10,'No input trace');
+   game=createGame({level:room,seed:0,surf:false});
+   for(const input of inputs)game=tick(game,input);
+   check(game.status==='won','Input-only winning trace did not reach actual win');
+   prior={inputs_replayed:inputs.length,finish_status:game.status};
+ } else {throw new Error('Unknown QA scenario: '+scenario);}
+ return {game,provenance,prior};
+}
+(async()=>{
+ try{
+   const {game,provenance,prior}=await makeScenario();
+   const view=describeVisualHud(game);
+   document.getElementById('scenario-label').textContent=`${scenario} · ${provenance}`;
+   document.getElementById('cue-goal').textContent=`关卡 ${view.level} / ${view.status} / 潮汐 ${view.seconds}`;
+   document.getElementById('cue-text').textContent=`${view.state} · ${view.cue}`;
+   const canvas=document.getElementById('test-game');const ctx=canvas.getContext('2d');
+   const rectangles=[];const originalStroke=ctx.strokeRect.bind(ctx);
+   ctx.strokeRect=(...args)=>{rectangles.push(args);originalStroke(...args);};
+   draw(ctx,game);
+   if(scenario==='rail-preview'){
+      const r=prior.forecast.target;
+      check(rectangles.some(v=>v.length===4 && Math.abs(v[0]-r.x)<1e-7 && Math.abs(v[1]-r.y)<1e-7 && Math.abs(v[2]-r.w)<1e-7 && Math.abs(v[3]-r.h)<1e-7), 'Drawn forecast rectangle is not physics target');
+      check(view.state==='rail','UI state must match moving rail');
+   }
+   if(scenario==='blocked-edge') check(view.state==='blocked','UI must show blocked, not fake target');
+   if(scenario.startsWith('won-room')) check(view.state==='won','UI must display actual win');
+   window.__ET_QA_SUMMARY__={scenario,provenance,state:view,engine_status:game.status,player_support:game.player.supportId,
+     cue_real_engine:!!view,route_revealed:game.route?.revealed,flight_bridge_id:game.flightBridgeId,
+     actual_forecast:prior?.forecast??null,rail_x:prior?.current_moving_collision_x??null,
+     canvas_buffer:[canvas.width,canvas.height],rectangles_drawn:rectangles.length,prior};
+   window.__ET_QA_READY__=true;
+ }catch(e){window.__ET_QA_ERROR__=String(e.stack||e);console.error(e);}
+})();
+</script>
+</body>
+</html>
