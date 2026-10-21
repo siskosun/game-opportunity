@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "status": "DRAFT_PROPOSAL_ONLY_NOT_A_COMPATIBILITY_LOCK",
+  "bundle_version": "0.4.6",
+  "changes": {
+    "game-exp": {
+      "current_pin": "v1.5.4",
+      "proposed_new_tag": "v1.5.5",
+      "qualification": "UNTESTED_CANDIDATE_REQUIRES_CROSS_REPOSITORY_CI_AND_HUMAN_APPROVAL"
+    },
+    "h5-game-prototype-agent": {
+      "current_pin": "v0.2.6",
+      "proposed_new_tag": "v0.2.7",
+      "qualification": "UNTESTED_CANDIDATE_REQUIRES_CROSS_REPOSITORY_CI_AND_HUMAN_APPROVAL"
+    },
+    "godot-prototype-studio": {
+      "current_pin": "v1.0.7",
+      "proposed_new_tag": "v1.0.8",
+      "qualification": "UNTESTED_CANDIDATE_REQUIRES_CROSS_REPOSITORY_CI_AND_HUMAN_APPROVAL"
+    }
+  },
+  "instructions": [
+    "Review the upstream Release/tag and exact commit before changing compatibility.lock.json.",
+    "Review API/Manifest/PROBE contracts, license notices and version compatibility.",
+    "Run Windows/Ubuntu tests and a real installed four-Skill smoke test.",
+    "Do not merge/publish or auto-install from this draft proposal."
+  ]
+}
