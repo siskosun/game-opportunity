@@ -203,7 +203,10 @@ class UpdaterTests(unittest.TestCase):
                  mock.patch.object(updater.InstallationSnapshot,"restore",side_effect=ValueError("LOCKED")):
                 with self.assertRaisesRegex(ValueError,"ROLLBACK_INCOMPLETE"):
                     updater.execute(pathlib.Path(d),"codex",True)
-            with mock.patch.object(updater,"execute",side_effect=ValueError("ROLLBACK_INCOMPLETE")), \
+            recovery_root=pathlib.Path(d)/".game-exp/recovery"
+            recovery_folders=list(recovery_root.glob("four-skill-update-*"))
+            self.assertEqual(len(recovery_folders),1,"backup must survive incomplete rollback")
+            with mock.patch.object(updater,"execute",side_effect=updater.RollbackIncompleteError(".game-exp/recovery/test")), \
                  mock.patch.object(sys,"argv",["auto_update_bundle.py","--harness","codex","--json"]):
                 output=io.StringIO()
                 with contextlib.redirect_stdout(output):
@@ -212,6 +215,7 @@ class UpdaterTests(unittest.TestCase):
             self.assertEqual(result["status"],"ROLLBACK_INCOMPLETE")
             self.assertIsNone(result["writes"])
             self.assertEqual(result["reason"],"MANUAL_RECOVERY_REQUIRED")
+            self.assertEqual(result["recovery_directory"],".game-exp/recovery/test")
 
 if __name__ == "__main__":
     unittest.main()
