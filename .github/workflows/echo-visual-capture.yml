@@ -1,0 +1,68 @@
+name: P0-C Echo Tide frozen visual capture (draft only)
+
+on:
+  push:
+    branches:
+      - feat/art-quality-p0-evidence-20261020
+    paths:
+      - .github/workflows/echo-visual-capture.yml
+      - tools/art_quality_pilot/capture_echo_tide.mjs
+permissions:
+  contents: read
+
+jobs:
+  visual-capture:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout trial tooling
+        uses: actions/checkout@v4
+      - name: Checkout pinned public Echo Tide source (read-only)
+        uses: actions/checkout@v4
+        with:
+          repository: siskosun/echo-tide
+          ref: 38b9daa1adf78002c8ec5349c269a4ce31959d8f
+          path: _frozen_echo
+          persist-credentials: false
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Build frozen H5 source
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git -C _frozen_echo rev-parse HEAD)" = '38b9daa1adf78002c8ec5349c269a4ce31959d8f'
+          npm ci --prefix _frozen_echo
+          npm run build --prefix _frozen_echo
+      - name: Install browser harness
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/art-capture-browser"
+          npm install --prefix "$RUNNER_TEMP/art-capture-browser" --no-save --ignore-scripts playwright@1.56.1
+          which google-chrome
+      - name: Capture authentic browser views and provenance
+        shell: bash
+        env:
+          ECHO_VISUAL_ORIGIN: http://127.0.0.1:8765
+          ECHO_VISUAL_SOURCE: _frozen_echo
+          ECHO_VISUAL_OUTPUT: artifacts/echo-visual
+        run: |
+          set -euo pipefail
+          python3 -m http.server 8765 --bind 127.0.0.1 --directory _frozen_echo/dist > "$RUNNER_TEMP/echo-tide-http.log" 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+          for i in $(seq 1 40); do
+            if curl -fsS http://127.0.0.1:8765/ >/dev/null; then break; fi
+            sleep 0.3
+          done
+          ECHO_PLAYWRIGHT_ROOT="$RUNNER_TEMP/art-capture-browser" node tools/art_quality_pilot/capture_echo_tide.mjs
+      - name: Upload runtime-only visual evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: echo-tide-frozen-browser-evidence
+          path: artifacts/echo-visual/
+          if-no-files-found: warn
+          retention-days: 14
