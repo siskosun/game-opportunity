@@ -27,7 +27,7 @@ class VersionGatedInstall(unittest.TestCase):
 
     def test_explicit_untested_downgrade_or_upgrade_refused(self):
         with tempfile.TemporaryDirectory() as td, mock.patch.object(installer, "preflight_released_pins", side_effect=AssertionError("network")):
-            for tag in ("v1.5.3", "v1.5.5", "main"):
+            for tag in ("v1.5.3", "v1.5.6", "main"):
                 with self.subTest(tag=tag), self.assertRaises(installer.BundleInstallError):
                     installer.bundle_install(pathlib.Path(td), "cursor", tag)
 
