@@ -1,37 +1,37 @@
 {
   "schema_version": 1,
-  "bundle_version": "0.4.6",
+  "bundle_version": "0.4.7",
   "policy": "released-pins-only",
   "assurance": "STATIC_CONTRACT_CI_ONLY_NOT_END_TO_END_CERTIFIED",
-  "generated_date": "2026-10-16",
-  "notes": "v0.4.6 adds optional human judgment provenance and disagreement-to-test notes only. Pinned game-exp/H5/Godot releases and their exact commits stay as reviewed in v0.4.5. Static tests and cross-platform install smoke are required; real user/host behavior, independent judgment timestamps and player outcomes remain NOT_RUN.",
+  "generated_date": "2026-10-21",
+  "notes": "v0.4.7 adds four-Skill stable Release self-update for authorized local Harnesses and dependency-aware game completion checkpoints. Pinned game-exp v1.5.5, H5 v0.2.7 and Godot v1.0.8 are verified published Releases. Skill entrypoint and tag identities are pinned; CI and isolated installation smoke do not certify hosted auto-installation or player enjoyment.",
   "components": {
     "game-exp": {
       "repository": "siskosun/game-exp",
       "channel": "published_release",
-      "version": "1.5.4",
-      "tag": "v1.5.4",
-      "commit_sha": "2c8f761ace1fec98c66390d87bb0477bb88082c8",
-      "skill_git_blob_sha1": "da126807552de0d1b04c1d2bc3b33fac2333f212",
-      "min_version": "1.5.4"
+      "version": "1.5.5",
+      "tag": "v1.5.5",
+      "commit_sha": "fcd8cf33611eacbdeab66634343f4c8cacaba450",
+      "skill_git_blob_sha1": "6e2850fa2396b403114014c23237a9e669ebbf51",
+      "min_version": "1.5.5"
     },
     "h5-game-prototype-agent": {
       "repository": "siskosun/h5-game-prototype-agent",
       "channel": "semver_tag",
-      "version": "0.2.6",
-      "tag": "v0.2.6",
-      "commit_sha": "fffe6579867e0f4f71c221ed0da836dbe418b835",
-      "skill_git_blob_sha1": "eb6b4cd96d5e7f468426c629d6af4ddd8e3ade3f",
-      "min_version": "0.2.6"
+      "version": "0.2.7",
+      "tag": "v0.2.7",
+      "commit_sha": "a66b6dce9bd933a8530a16b122f0905e0424aed0",
+      "skill_git_blob_sha1": "90127cb6787dcd3bd5de8b09e50c2d3b353d2bab",
+      "min_version": "0.2.7"
     },
     "godot-prototype-studio": {
       "repository": "siskosun/godot-prototype-studio",
       "channel": "semver_tag",
-      "version": "1.0.7",
-      "tag": "v1.0.7",
-      "commit_sha": "8c3356ee42c0d8a07fd550eb9caf95bf9a95f61c",
-      "skill_git_blob_sha1": "748f2a7a557a1c58eaa197828d185c13d359dffc",
-      "min_version": "1.0.7"
+      "version": "1.0.8",
+      "tag": "v1.0.8",
+      "commit_sha": "92a262d6afedaedbaf993f63f5348807e674ed43",
+      "skill_git_blob_sha1": "cd73efdd7f44f52e82e1529729c8b08216bacbca",
+      "min_version": "1.0.8"
     }
   }
 }

@@ -98,6 +98,12 @@ Use `codex` or `qoder` as appropriate. This runs the **official published-stable
 Use `scripts/handoff_bundle.py` for ordinary non-authoritative research context when a real playable is requested. game-exp's real current project/Manifest/Bind controls all official experiments. After verified observation, `scripts/link_result.py` records operator-reported provenance in the ordinary opportunity card; it does not assert a Review outcome or mutate the protected Ledger.
 
 
+## v0.4.7: vetted four-Skill self-update and player-path evidence
+
+- Local Codex/Cursor/Qoder runs now check all four published stable GitHub Releases once per task; a user-authorized invocation of any of the four Skills can launch the checksum-verified unified updater. Updates use the official game-exp companion installer, validated compatibility pins, and rollback. ChatGPT web can only report updates; it cannot overwrite installed Skills.
+- Godot and H5 add dependency-aware completion-checkpoint validation, normal input provenance and changed-file invalidation. This checks evidence integrity and does not replace actual gameplay or a human playtest.
+- Published compatibility pins: game-exp **v1.5.5**, H5 **v0.2.7**, Godot **v1.0.8**. Release tests and cross-platform isolated installation smoke must pass before publishing.
+
 ## v0.4.6: optional human insight and disagreement-to-test loop
 
 This update adds a small **opt-in** process for consequential game-opportunity decisions: preserve the developer's actual pre-AI prediction when one exists, contrast it with the AI's strongest alternative explanation, and turn a material disagreement into **one bounded player observation**. An absent or retrospective human baseline is labeled honestly; a normal single-context AI assessment is **not blind** to earlier human input. Routine research/builds proceed without extra questions or approvals.

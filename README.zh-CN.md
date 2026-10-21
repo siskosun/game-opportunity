@@ -33,7 +33,7 @@ python skills/game-opportunity/scripts/install_bundle.py --harness cursor --json
 python skills/game-opportunity/scripts/install_bundle.py --harness cursor --verify --online --json
 ```
 
-将 `cursor` 替换为 `codex` 或 `qoder`。默认只影响指定 Harness。仅当用户明确要求同步所有三个本地 Harness 时，才使用 `--harness all`。安装器拒绝从 game-exp 的未发布 `main` 自动安装，不会自动降级。当前兼容锁固定 game-exp `v1.5.4`；若显式使用 `--game-exp-release`，必须指定与当前锁完全一致的 `v1.5.4`，且仍遵循其降级保护。
+将 `cursor` 替换为 `codex` 或 `qoder`。默认只影响指定 Harness。仅当用户明确要求同步所有三个本地 Harness 时，才使用 `--harness all`。安装器拒绝从 game-exp 的未发布 `main` 自动安装，不会自动降级。当前兼容锁固定 game-exp `v1.5.5`；若显式使用 `--game-exp-release`，必须指定与当前锁完全一致的 `v1.5.5`，且仍遵循其降级保护。
 
 **ChatGPT 网页端**：导入本 Skill ZIP 并不会自动执行安装脚本，也不能替用户往 Windows 写入 game-exp 的运行时或 MCP 配置。需要用户另行在支持的环境中安装/连接 game-exp，或在网页端通过支持的安装入口分别导入可用的 Skill；没有可信生命周期工具时，仍能研究机会，但不能伪造正式实验操作。
 
@@ -148,6 +148,14 @@ python skills/game-opportunity/scripts/validation_cycle.py assess --help
 
 本版自动测试使用合成数据；真实玩家试运行、正式安装的跨 Harness 行为路由，以及生产环境 game-exp 实验端到端测试，仍须独立验证。
 
+
+## v0.4.7：四技能自更新与玩家路径验收
+
+本地 Codex、Cursor、Qoder 运行四个游戏技能之一时，可在已授权的更新策略下检查全部四个 GitHub 正式稳定 Release；使用经过 SHA-256 校验的统一更新器、兼容锁和官方 game-exp 安装器更新当前 Harness。失败时恢复所管理的技能与运行时；新版本尚未通过整套兼容性验证时拒绝强行更新。ChatGPT 网页端不支持自动替换已安装的技能。
+
+Godot 与 H5 新增玩家路径检查点、实际输入来源记录、证据摘要核对和源码变更依赖失效。机器记录不能冒充真人游玩评价。
+
+当前兼容版本：game-exp **v1.5.5**、H5 **v0.2.7**、Godot **v1.0.8**。首次使用自更新需要先把支持新启动机制的技能安装到本地；旧安装版本不会自动获得新能力。
 
 ## v0.4.6：人类原创判断与 AI 分歧验证（可选）
 
