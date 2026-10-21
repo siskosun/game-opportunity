@@ -37,7 +37,7 @@ def extract(data,dst):
             name=item.filename;part=pathlib.PurePosixPath(name)
             mode=(item.external_attr>>16)&0o170000
             if (not part.parts or part.parts[0]!="game-opportunity" or ".." in part.parts
-                or name.startswith("/") or "\\\\" in name or ":" in name or mode not in (0,stat.S_IFREG,stat.S_IFDIR)
+                or name.startswith("/") or "\\" in name or ":" in name or mode not in (0,stat.S_IFREG,stat.S_IFDIR)
                 or item.flag_bits&1):raise ValueError("UNSAFE_ARCHIVE")
             total+=item.file_size
             if (total>33554432 or item.file_size>8388608 or (item.file_size>1048576 and item.file_size/max(item.compress_size,1)>500)):raise ValueError("UNSAFE_ARCHIVE_SIZE")
