@@ -43,7 +43,7 @@ try{
   await context.addInitScript(()=>{const original=Crypto.prototype.getRandomValues;Crypto.prototype.getRandomValues=function(a){if(a instanceof Uint32Array&&a.length===1){a[0]=3;return a;}return original.call(this,a);};});
   const page=await context.newPage(),errors=listen(page);
   const response=await page.goto(origin+'/',{waitUntil:'networkidle',timeout:30000});
-  await page.waitForSelector('#et-readable-hud[data-state]',{timeout:15000});
+  await page.waitForSelector('#et-readable-hud[data-state]',{state:'attached',timeout:15000});
   const snapshot=async()=>page.evaluate(()=>{
     const hud=document.getElementById('et-readable-hud');
     const canvas=document.getElementById('game');const bbox=canvas.getBoundingClientRect();
