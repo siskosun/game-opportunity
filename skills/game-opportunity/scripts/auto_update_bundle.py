@@ -52,6 +52,30 @@ def extract(data,dst):
     needed=("SKILL.md","VERSION","compatibility.lock.json","scripts/install_bundle.py","scripts/check_bundle.py","scripts/auto_update_bundle.py")
     if not all((root/item).is_file() for item in needed):raise ValueError("INCOMPLETE_BUNDLE")
     return root
+def verified_current(home,harness,latest):
+    """Don't claim CURRENT on version markers alone; verify installed bytes and released pins."""
+    root=home/("."+harness)/"skills"/"game-opportunity"
+    script=root/"scripts/check_bundle.py"
+    lockfile=root/"compatibility.lock.json"
+    if any(parent.is_symlink() for parent in (script,*script.parents,lockfile)):
+        return False
+    if not script.is_file() or not lockfile.is_file():
+        return False
+    try:
+        lock=json.loads(lockfile.read_text(encoding="utf-8"))
+        if (ver(lock["bundle_version"])!=ver(latest["game-opportunity"])
+            or any(ver(lock["components"][n]["tag"])!=ver(latest[n])
+                   for n in NAMES if n!="game-opportunity")):
+            return False
+        proc=subprocess.run([sys.executable,str(script),"--harness",harness,
+                             "--home",str(home),"--online","--json"],
+                            capture_output=True,text=True,encoding="utf-8",
+                            errors="replace",timeout=120)
+        result=json.loads(proc.stdout)
+        return proc.returncode==0 and isinstance(result,dict) and result.get("status")=="CURRENT"
+    except (ValueError,TypeError,KeyError,OSError,subprocess.TimeoutExpired):
+        return False
+
 class InstallationSnapshot:
     """Backup exactly the selected Harness-managed paths for verified rollback."""
     def __init__(self,home,harness):
@@ -104,7 +128,9 @@ def execute(home,harness,apply=False):
     stale=[n for n in NAMES if not installed[n] or ver(installed[n])<ver(latest[n])]
     status={"status":"UPDATE_AVAILABLE" if stale else "CURRENT","latest":latest,
             "installed":installed,"outdated":stale,"writes":False}
-    if not stale or not apply:return status
+    if not stale:
+        return {**status,"status":"CURRENT" if verified_current(home,harness,latest) else "UNVERIFIED"}
+    if not apply:return status
     row=next((a for a in rows["game-opportunity"].get("assets",[]) if a.get("name")=="skill.zip"),None)
     tag=latest["game-opportunity"]
     url="https://github.com/siskosun/game-opportunity/releases/download/"+tag+"/skill.zip"
