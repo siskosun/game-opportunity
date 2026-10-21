@@ -51,6 +51,8 @@ async function metadata(page) {
       dpr: devicePixelRatio,
       canvas: canvas ? { bitmap_width: canvas.width, bitmap_height: canvas.height, css_rect: { x: rect.x, y: rect.y, width: rect.width, height: rect.height } } : null,
       controls: nodes,
+      canvas_visible_fraction_in_initial_viewport: rect ? Math.round(Math.max(0, Math.min(innerHeight, rect.bottom) - Math.max(0, rect.top)) / rect.height * 1000) / 1000 : null,
+      canvas_entirely_inside_initial_viewport: !!(rect && rect.y >= 0 && rect.bottom <= innerHeight),
       status: document.getElementById('status')?.textContent || null,
       hint: document.getElementById('hint')?.textContent || null,
     };
@@ -60,6 +62,7 @@ async function metadata(page) {
 async function run() {
   await mkdir(outputRoot, { recursive: true });
   const browser = await chromium.launch({ channel: 'chrome', headless: true, args: ['--no-sandbox', '--disable-dev-shm-usage'] });
+  const actualBrowserVersion = browser.version();
   const results = [];
   let failed = false;
   try {
@@ -86,9 +89,11 @@ async function run() {
       async function snap(stage) {
         const whole = join(outputRoot, `${viewport.id}-${stage}-page.png`);
         const canvasPath = join(outputRoot, `${viewport.id}-${stage}-canvas.png`);
+        const viewportPath = join(outputRoot, `${viewport.id}-${stage}-viewport.png`);
         await page.screenshot({ path: whole, fullPage: true, animations: 'disabled' });
+        await page.screenshot({ path: viewportPath, fullPage: false, animations: 'disabled' });
         await canvas.screenshot({ path: canvasPath, animations: 'disabled' });
-        screenshots.push({ stage, page: await fileEntry(whole, outputRoot), canvas: await fileEntry(canvasPath, outputRoot) });
+        screenshots.push({ stage, page: await fileEntry(whole, outputRoot), viewport: await fileEntry(viewportPath, outputRoot), canvas: await fileEntry(canvasPath, outputRoot) });
       }
       await snap('initial');
       await canvas.focus();
@@ -121,15 +126,16 @@ async function run() {
     provenance: 'checked-out GitHub source built within the runner, not a human visual review',
     game_exp_status: 'read-only external observation; no Candidate/Review/Ledger mutation',
     visual_pilot_task: 'ET-VISUAL-01',
-    browser: 'Playwright Chrome headless in GitHub-hosted Ubuntu',
+    browser: { description: 'Playwright Chrome headless in GitHub-hosted Ubuntu', version: actualBrowserVersion, viewport_only_not_actual_phone: true },
     build_files: await hashedBuild(),
+    fontconfig: await fileEntry(join(outputRoot, 'fontconfig.txt'), outputRoot),
     outputs: results,
     browser_technical_ok: !failed,
     report_scope: 'Screenshots, browser console, viewport/canvas geometry and input dispatch only. No subjective art approval or actual asset-production timing.',
   };
   const reportPath = join(outputRoot, 'runtime-report.json');
   await writeFile(reportPath, JSON.stringify(report, null, 2) + '\n', { flag: 'wx' });
-  console.log(JSON.stringify({ report: reportPath, technical_ok: report.browser_technical_ok, screenshots: results.reduce((acc, r) => acc+r.screenshots.length*2, 0), viewport_count: results.length }));
+  console.log(JSON.stringify({ report: reportPath, technical_ok: report.browser_technical_ok, screenshots: results.reduce((acc, r) => acc+r.screenshots.length*3, 0), viewport_count: results.length }));
   if (failed) process.exitCode = 1;
 }
 
