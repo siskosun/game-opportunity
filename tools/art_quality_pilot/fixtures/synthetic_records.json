@@ -1,0 +1,299 @@
+{
+  "schema_version": "1.0",
+  "study_id": "SYNTHETIC-P0-DO-NOT-CITE",
+  "study_kind": "synthetic",
+  "required_review_criteria": [
+    "identity",
+    "style",
+    "task",
+    "technical"
+  ],
+  "records": [
+    {
+      "id": "a-1",
+      "task_id": "atask-1",
+      "participant_id": "synthetic-participant",
+      "cohort": "ai_proxy",
+      "condition": "A",
+      "execution_status": "completed",
+      "attempts": [
+        {
+          "attempt": 1,
+          "artifact_path": "SYNTHETIC.png",
+          "review": {
+            "identity": "pass",
+            "style": "pass",
+            "task": "pass",
+            "technical": "pass"
+          },
+          "elapsed_minutes": 5.0,
+          "cost": 1.0,
+          "currency": "USD"
+        }
+      ],
+      "manual_work_minutes": 12,
+      "review_minutes": 3,
+      "final_quality": {
+        "status": "reviewed",
+        "defects": []
+      }
+    },
+    {
+      "id": "a-2",
+      "task_id": "atask-2",
+      "participant_id": "synthetic-participant",
+      "cohort": "ai_proxy",
+      "condition": "A",
+      "execution_status": "completed",
+      "attempts": [
+        {
+          "attempt": 1,
+          "artifact_path": "SYNTHETIC.png",
+          "review": {
+            "identity": "fail",
+            "style": "pass",
+            "task": "pass",
+            "technical": "pass"
+          },
+          "elapsed_minutes": 5.0,
+          "cost": 1.0,
+          "currency": "USD"
+        },
+        {
+          "attempt": 2,
+          "artifact_path": "SYNTHETIC.png",
+          "review": {
+            "identity": "pass",
+            "style": "pass",
+            "task": "pass",
+            "technical": "pass"
+          },
+          "elapsed_minutes": 5.0,
+          "cost": 1.0,
+          "currency": "USD"
+        }
+      ],
+      "manual_work_minutes": 30,
+      "review_minutes": 12,
+      "final_quality": {
+        "status": "reviewed",
+        "defects": [
+          {
+            "category": "identity",
+            "severity": "major",
+            "introduced_by_revision": true
+          }
+        ]
+      }
+    },
+    {
+      "id": "a-3",
+      "task_id": "atask-3",
+      "participant_id": "synthetic-participant",
+      "cohort": "ai_proxy",
+      "condition": "A",
+      "execution_status": "completed",
+      "attempts": [
+        {
+          "attempt": 1,
+          "artifact_path": "SYNTHETIC.png",
+          "review": {
+            "identity": "pass",
+            "style": "pass",
+            "task": "pass",
+            "technical": "unknown"
+          },
+          "elapsed_minutes": 5.0,
+          "cost": 1.0,
+          "currency": "USD"
+        }
+      ],
+      "manual_work_minutes": null,
+      "review_minutes": null,
+      "final_quality": null
+    },
+    {
+      "id": "a-4",
+      "task_id": "atask-4",
+      "participant_id": "synthetic-participant",
+      "cohort": "ai_proxy",
+      "condition": "A",
+      "execution_status": "failed",
+      "attempts": [
+        {
+          "attempt": 1,
+          "artifact_path": null,
+          "review": {},
+          "elapsed_minutes": 5.0,
+          "cost": 1.0,
+          "currency": "USD"
+        }
+      ],
+      "manual_work_minutes": null,
+      "review_minutes": null,
+      "final_quality": null
+    },
+    {
+      "id": "a-5",
+      "task_id": "atask-5",
+      "participant_id": "synthetic-participant",
+      "cohort": "ai_proxy",
+      "condition": "A",
+      "execution_status": "not_run",
+      "attempts": [],
+      "manual_work_minutes": null,
+      "review_minutes": null,
+      "final_quality": null
+    },
+    {
+      "id": "b-1",
+      "task_id": "btask-1",
+      "participant_id": "synthetic-participant",
+      "cohort": "ai_proxy",
+      "condition": "B",
+      "execution_status": "completed",
+      "attempts": [
+        {
+          "attempt": 1,
+          "artifact_path": "SYNTHETIC.png",
+          "review": {
+            "identity": "pass",
+            "style": "pass",
+            "task": "pass",
+            "technical": "pass"
+          },
+          "elapsed_minutes": 5.0,
+          "cost": 1.0,
+          "currency": "USD"
+        }
+      ],
+      "manual_work_minutes": 7,
+      "review_minutes": 3,
+      "final_quality": {
+        "status": "reviewed",
+        "defects": []
+      }
+    },
+    {
+      "id": "b-2",
+      "task_id": "btask-2",
+      "participant_id": "synthetic-participant",
+      "cohort": "ai_proxy",
+      "condition": "B",
+      "execution_status": "completed",
+      "attempts": [
+        {
+          "attempt": 1,
+          "artifact_path": "SYNTHETIC.png",
+          "review": {
+            "identity": "pass",
+            "style": "pass",
+            "task": "pass",
+            "technical": "pass"
+          },
+          "elapsed_minutes": 5.0,
+          "cost": 1.0,
+          "currency": "USD"
+        }
+      ],
+      "manual_work_minutes": 8,
+      "review_minutes": 3,
+      "final_quality": {
+        "status": "reviewed",
+        "defects": []
+      }
+    },
+    {
+      "id": "b-3",
+      "task_id": "btask-3",
+      "participant_id": "synthetic-participant",
+      "cohort": "ai_proxy",
+      "condition": "B",
+      "execution_status": "failed",
+      "attempts": [
+        {
+          "attempt": 1,
+          "artifact_path": null,
+          "review": {},
+          "elapsed_minutes": 5.0,
+          "cost": 1.0,
+          "currency": "USD"
+        }
+      ],
+      "manual_work_minutes": null,
+      "review_minutes": null,
+      "final_quality": null
+    },
+    {
+      "id": "h-1",
+      "task_id": "htask-1",
+      "participant_id": "synthetic-participant",
+      "cohort": "human_team",
+      "condition": "A",
+      "execution_status": "completed",
+      "attempts": [
+        {
+          "attempt": 1,
+          "artifact_path": "SYNTHETIC.png",
+          "review": {
+            "identity": "pass",
+            "style": "pass",
+            "task": "pass",
+            "technical": "pass"
+          },
+          "elapsed_minutes": 5.0,
+          "cost": 1.0,
+          "currency": "USD"
+        }
+      ],
+      "manual_work_minutes": 40,
+      "review_minutes": 10,
+      "final_quality": {
+        "status": "reviewed",
+        "defects": []
+      }
+    },
+    {
+      "id": "h-2",
+      "task_id": "htask-2",
+      "participant_id": "synthetic-participant",
+      "cohort": "human_team",
+      "condition": "B",
+      "execution_status": "completed",
+      "attempts": [
+        {
+          "attempt": 1,
+          "artifact_path": "SYNTHETIC.png",
+          "review": {
+            "identity": "pass",
+            "style": "fail",
+            "task": "pass",
+            "technical": "pass"
+          },
+          "elapsed_minutes": 5.0,
+          "cost": 1.0,
+          "currency": "USD"
+        },
+        {
+          "attempt": 2,
+          "artifact_path": "SYNTHETIC.png",
+          "review": {
+            "identity": "pass",
+            "style": "pass",
+            "task": "pass",
+            "technical": "pass"
+          },
+          "elapsed_minutes": 5.0,
+          "cost": 1.0,
+          "currency": "USD"
+        }
+      ],
+      "manual_work_minutes": 38,
+      "review_minutes": 12,
+      "final_quality": {
+        "status": "reviewed",
+        "defects": []
+      }
+    }
+  ]
+}

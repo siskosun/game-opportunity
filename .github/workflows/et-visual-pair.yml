@@ -1,0 +1,98 @@
+name: ET-VISUAL-01 reviewer-feedback revision (candidate-02-r1)
+
+on:
+  push:
+    branches:
+      - feat/art-quality-p0-evidence-20261020
+    paths:
+      - .github/workflows/et-visual-pair.yml
+      - tools/art_quality_pilot/experiments/et_visual_01/**
+permissions:
+  contents: read
+
+jobs:
+  exploratory-pair:
+    name: Render ${{ matrix.candidate }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        candidate: [candidate-02-r1]
+    steps:
+      - name: Checkout only the trial tooling
+        uses: actions/checkout@v4
+      - name: Checkout frozen Echo Tide source in separate directory
+        uses: actions/checkout@v4
+        with:
+          repository: siskosun/echo-tide
+          ref: 38b9daa1adf78002c8ec5349c269a4ce31959d8f
+          path: _trial_echo
+          persist-credentials: false
+      - name: Install Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Apply exactly one ephemeral candidate visual surface
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git -C _trial_echo rev-parse HEAD)" = '38b9daa1adf78002c8ec5349c269a4ce31959d8f'
+          node tools/art_quality_pilot/experiments/et_visual_01/apply_visual_candidate.mjs '${{ matrix.candidate }}' _trial_echo
+          test -z "$(git -C _trial_echo diff --name-only -- src/game.js src/levels.js src/route_fork.js src/airborne_bridge.js)"
+          printf '%s\n' 'Only visual surface source changed; authoritative game logic untouched.'
+      - name: Build exactly this variant
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm ci --prefix _trial_echo
+          npm run build --prefix _trial_echo
+      - name: Prepare isolated browser harness and Chinese fonts
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/et-visual-browser"
+          npm install --prefix "$RUNNER_TEMP/et-visual-browser" --no-save --ignore-scripts playwright@1.56.1
+          sudo apt-get update -qq
+          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends fonts-noto-cjk
+          fc-cache -f
+          mkdir -p 'artifacts/${{ matrix.candidate }}'
+          fc-match -f '%{family} | %{file}\n' 'Noto Sans CJK SC' > 'artifacts/${{ matrix.candidate }}/fontconfig.txt'
+      - name: Capture real Chrome viewport and input screenshots
+        shell: bash
+        env:
+          ET_VISUAL_VARIANT_ID: ${{ matrix.candidate }}
+          ECHO_VISUAL_ORIGIN: http://127.0.0.1:8765
+          ECHO_VISUAL_SOURCE: _trial_echo
+          ECHO_VISUAL_OUTPUT: artifacts/${{ matrix.candidate }}
+        run: |
+          set -euo pipefail
+          python3 -m http.server 8765 --bind 127.0.0.1 --directory _trial_echo/dist > "$RUNNER_TEMP/et-visual-http.log" 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+          for i in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:8765/ >/dev/null; then break; fi
+            sleep 0.3
+          done
+          ECHO_PLAYWRIGHT_ROOT="$RUNNER_TEMP/et-visual-browser" node tools/art_quality_pilot/experiments/et_visual_01/capture_pair.mjs
+      - name: Assert coverage and preserve playable variant
+        shell: bash
+        run: |
+          set -euo pipefail
+          node - <<'NODE'
+          const fs = require('fs');
+          const p = 'artifacts/${{ matrix.candidate }}/runtime-report.json';
+          const r = JSON.parse(fs.readFileSync(p,'utf8'));
+          if (!r.outputs.every(x => x.revision_layout_gate?.passed) || !r.browser_technical_ok || r.variant_id !== '${{ matrix.candidate }}' || r.outputs.length !== 4 || !r.outputs.every(x => x.initial.canvas_visible_fraction_in_initial_viewport >= 0.999 && !x.errors.length && x.screenshots.length === 3)) process.exit(1);
+          console.log('CAPTURED',r.variant_id,'BROWSER',r.browser.version,'4 VIEWPORTS/12 STAGES/36 FILES','TECHNICAL_OK',r.browser_technical_ok);
+          NODE
+          cp -R _trial_echo/dist 'artifacts/${{ matrix.candidate }}/playable-dist'
+          cp _trial_echo/visual-eval/lineage.json 'artifacts/${{ matrix.candidate }}/lineage.json'
+      - name: Upload trial candidate and evidence only
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: et-visual-01-${{ matrix.candidate }}
+          path: artifacts/${{ matrix.candidate }}/
+          if-no-files-found: warn
+          retention-days: 14

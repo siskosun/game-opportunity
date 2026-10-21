@@ -1,0 +1,149 @@
+name: P0-C Echo Tide frozen visual capture (draft only)
+
+on:
+  push:
+    branches:
+      - feat/art-quality-p0-evidence-20261020
+    paths:
+      - .github/workflows/echo-visual-capture.yml
+      - tools/art_quality_pilot/capture_echo_tide.mjs
+      - tools/art_quality_pilot/fixtures/echo-tide-visual-draft/style-pack.json
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  visual-capture:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout trial tooling
+        uses: actions/checkout@v4
+      - name: Checkout pinned public Echo Tide source (read-only)
+        uses: actions/checkout@v4
+        with:
+          repository: siskosun/echo-tide
+          ref: 38b9daa1adf78002c8ec5349c269a4ce31959d8f
+          path: _frozen_echo
+          persist-credentials: false
+      - name: Checkout pinned Art Director validator (read-only)
+        uses: actions/checkout@v4
+        with:
+          repository: NewenergyEric/art-director-skill
+          ref: 36fe67bd655b1bc9ae110d9a51066e230e25b41e
+          path: _art_director
+          persist-credentials: false
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Build frozen H5 source
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git -C _frozen_echo rev-parse HEAD)" = '38b9daa1adf78002c8ec5349c269a4ce31959d8f'
+          npm ci --prefix _frozen_echo
+          npm run build --prefix _frozen_echo
+      - name: Install browser harness
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/art-capture-browser"
+          npm install --prefix "$RUNNER_TEMP/art-capture-browser" --no-save --ignore-scripts playwright@1.56.1
+          which google-chrome
+      - name: Install readable Chinese font and record font configuration
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends fonts-noto-cjk
+          fc-cache -f
+          mkdir -p artifacts/echo-visual
+          fc-match -f '%{family} | %{file}\n' 'Noto Sans CJK SC' > artifacts/echo-visual/fontconfig.txt
+          cat artifacts/echo-visual/fontconfig.txt
+      - name: Capture authentic browser views and provenance
+        shell: bash
+        env:
+          ECHO_VISUAL_ORIGIN: http://127.0.0.1:8765
+          ECHO_VISUAL_SOURCE: _frozen_echo
+          ECHO_VISUAL_OUTPUT: artifacts/echo-visual
+        run: |
+          set -euo pipefail
+          python3 -m http.server 8765 --bind 127.0.0.1 --directory _frozen_echo/dist > "$RUNNER_TEMP/echo-tide-http.log" 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+          for i in $(seq 1 40); do
+            if curl -fsS http://127.0.0.1:8765/ >/dev/null; then break; fi
+            sleep 0.3
+          done
+          ECHO_PLAYWRIGHT_ROOT="$RUNNER_TEMP/art-capture-browser" node tools/art_quality_pilot/capture_echo_tide.mjs
+      - name: Recover frozen original screenshot references
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts/echo-visual-frozen
+          gh run download 39535419154 -R siskosun/game-opportunity -n echo-tide-frozen-browser-evidence -D artifacts/echo-visual-frozen
+      - name: Validate and build unapproved Art Director B-group pack
+        shell: bash
+        run: |
+          set -euo pipefail
+          source_dir=artifacts/et-visual-style-source
+          mkdir -p "$source_dir/references"
+          cp tools/art_quality_pilot/fixtures/echo-tide-visual-draft/style-pack.json "$source_dir/style-pack.json"
+          for name in desktop-initial-canvas.png mobile-portrait-initial-viewport.png mobile-landscape-initial-viewport.png mobile-landscape-after-input-canvas.png; do
+            cp "artifacts/echo-visual-frozen/$name" "$source_dir/references/$name"
+          done
+          python - <<'PYREFERENCES'
+          import hashlib, json, pathlib
+          root=pathlib.Path('artifacts/et-visual-style-source')
+          data=json.loads((root/'style-pack.json').read_text(encoding='utf-8'))
+          for ref in data['references']:
+              actual=hashlib.sha256((root/ref['path']).read_bytes()).hexdigest()
+              expected=ref['provenance']['sha256']
+              if actual!=expected:
+                  raise SystemExit(f'frozen reference SHA mismatch: {ref["id"]}: {actual} != {expected}')
+          print('FROZEN_REFERENCE_SHA_MATCH',len(data['references']))
+          PYREFERENCES
+          python _art_director/scripts/style_pack.py validate "$source_dir" > artifacts/et-visual-validate.json
+          python _art_director/scripts/style_pack.py build "$source_dir" --out artifacts/et-visual-built > artifacts/et-visual-build.json
+          python _art_director/scripts/style_pack.py verify artifacts/et-visual-built > artifacts/et-visual-verify.json
+          python _art_director/scripts/style_pack.py brief artifacts/et-visual-built --category ui --family et-forecast-ui --task 'ET-VISUAL-01: predict landing + moving rail in real mobile game context' --out artifacts/et-visual-ui-brief.json > artifacts/et-visual-brief-command.json
+          python _art_director/scripts/style_pack.py archive artifacts/et-visual-built --out artifacts/et-visual-art-director-draft.zip > artifacts/et-visual-archive.json
+          python - <<'PYASSERT'
+          import json
+          from pathlib import Path
+          a=Path('artifacts/et-visual-built')
+          style=json.loads((a/'style-pack.json').read_text())
+          manifest=json.loads((a/'manifest.json').read_text())
+          brief=json.loads(Path('artifacts/et-visual-ui-brief.json').read_text())
+          assert style['status']=='draft' and style['approval'] is None
+          assert not manifest['release'] and not brief['pack']['release']
+          assert all(x['status']=='proposed' for x in style['rules'])
+          assert all(x['status']=='candidate' for x in style['references'])
+          assert all(x['result']=='unknown' for x in brief['review'])
+          print('UNAPPROVED_DRAFT_PACK_VERIFIED', manifest['pack'])
+          PYASSERT
+      - name: Upload unapproved art style pack
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: echo-tide-art-director-draft-pack
+          path: |
+            artifacts/et-visual-art-director-draft.zip
+            artifacts/et-visual-validate.json
+            artifacts/et-visual-build.json
+            artifacts/et-visual-verify.json
+            artifacts/et-visual-ui-brief.json
+            artifacts/et-visual-archive.json
+          if-no-files-found: warn
+          retention-days: 14
+      - name: Upload runtime-only visual evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: echo-tide-frozen-browser-evidence
+          path: artifacts/echo-visual/
+          if-no-files-found: warn
+          retention-days: 14

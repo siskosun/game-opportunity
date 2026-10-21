@@ -1,0 +1,112 @@
+name: ET-VISUAL-02 landscape-only T3 browser QA (unapproved)
+on:
+  push:
+    branches: [feat/art-quality-p0-evidence-20261020]
+    paths:
+      - .github/workflows/et-visual-touch-t3.yml
+      - tools/art_quality_pilot/experiments/et_visual_01/touch_t3/**
+permissions:
+  contents: read
+jobs:
+  mobile-orientation-qa:
+    runs-on: ubuntu-latest
+    name: Frozen R2 -> accepted landscape T1 -> portrait rotate gate T3
+    timeout-minutes: 18
+    steps:
+      - name: Checkout optional art pilot code
+        uses: actions/checkout@v4
+      - name: Checkout pinned Echo Tide game (read-only)
+        uses: actions/checkout@v4
+        with:
+          repository: siskosun/echo-tide
+          ref: 38b9daa1adf78002c8ec5349c269a4ce31959d8f
+          path: _trial_echo
+          persist-credentials: false
+      - name: Set up Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Reproduce the exact selected R2 build first
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git -C _trial_echo rev-parse HEAD)" = 38b9daa1adf78002c8ec5349c269a4ce31959d8f
+          npm ci --prefix _trial_echo
+          node tools/art_quality_pilot/experiments/et_visual_01/r2/apply_r2.mjs _trial_echo
+          npm run build --prefix _trial_echo
+          echo 'd7eb284f748f6ff258ba17d7cc02f2e465dc4a5f35603d9c454cd3aeac080136  _trial_echo/dist/index.html' | sha256sum -c -
+          echo '6e00ce0e34fe5202a90540a29731cc435df42bad72b8bea7319c01cdf9d84de3  _trial_echo/dist/assets/index-BIiMG_uM.js' | sha256sum -c -
+      - name: Layer accepted horizontal T1 and optional portrait T3
+        shell: bash
+        run: |
+          set -euo pipefail
+          node tools/art_quality_pilot/experiments/et_visual_01/touch_t1/apply_touch.mjs _trial_echo --already-r2
+          node tools/art_quality_pilot/experiments/et_visual_01/touch_t3/apply_t3.mjs _trial_echo
+          test -z "$(git -C _trial_echo diff --name-only -- src/game.js src/levels.js src/route_fork.js src/airborne_bridge.js)"
+          echo '362bb613fbc3d5ad4e61f26910aab08146eab2cbc63cc491e7d8df026483ec0f  _trial_echo/src/render.js' | sha256sum -c -
+          node --check _trial_echo/src/main.js
+          node --check _trial_echo/src/touch_controls.js
+      - name: Run authoritative game and touch regression tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm test --prefix _trial_echo
+          node tools/art_quality_pilot/experiments/et_visual_01/r2/r2_semantics.mjs _trial_echo
+          node --test tools/art_quality_pilot/experiments/et_visual_01/touch_t1/tests/touch_controls.test.mjs
+          npm run build --prefix _trial_echo
+      - name: Install Chrome Playwright and Chinese typography
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/et-t3-playwright" artifacts/et-touch-t3
+          npm install --prefix "$RUNNER_TEMP/et-t3-playwright" --no-save --ignore-scripts playwright@1.56.1
+          sudo apt-get update -qq
+          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends fonts-noto-cjk
+          fc-cache -f
+          fc-match -f '%{family} | %{file}\n' 'Noto Sans CJK SC' > artifacts/et-touch-t3/fontconfig.txt
+      - name: Verify game clock, rotation, real landscape touch and screenshot hash in Chrome
+        shell: bash
+        env:
+          T3_QA_SOURCE: _trial_echo
+          T3_QA_OUTPUT: artifacts/et-touch-t3
+          T3_QA_ORIGIN: http://127.0.0.1:8765
+        run: |
+          set -euo pipefail
+          python3 -m http.server 8765 --bind 127.0.0.1 --directory _trial_echo/dist > "$RUNNER_TEMP/et-touch-t3-http.log" 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+          for i in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:8765/ > /dev/null; then break; fi
+            sleep 0.3
+          done
+          T3_QA_PLAYWRIGHT="$RUNNER_TEMP/et-t3-playwright" node tools/art_quality_pilot/experiments/et_visual_01/touch_t3/capture_t3.mjs
+      - name: Archive exactly tested runnable game and provenance
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --input-type=module <<'NODE'
+          import {readFileSync,cpSync} from 'node:fs';
+          const r=JSON.parse(readFileSync('artifacts/et-touch-t3/touch-t3-qa.json','utf8'));
+          if(!r.passed || r.portrait.length!==4 || !r.rotation?.passed || !r.desktop?.passed || r.landscape.length!==1)throw Error('T3 browser test incomplete');
+          cpSync('_trial_echo/dist','artifacts/et-touch-t3/playable-dist',{recursive:true});
+          cpSync('_trial_echo/visual-eval/touch-t3-lineage.json','artifacts/et-touch-t3/touch-t3-lineage.json');
+          console.log('T3 saved without modifying original game repo (no human/device approval)');
+          NODE
+      - name: Preserve exact QA-tested source patch for Echo Tide PR review
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts/et-touch-t3/source-patch/src
+          for path in index.html src/main.js src/render.js src/visual_hud.js src/touch_controls.js; do
+            cp "_trial_echo/$path" "artifacts/et-touch-t3/source-patch/$path"
+          done
+          (cd artifacts/et-touch-t3/source-patch && sha256sum index.html src/*.js > source-sha256.txt)
+          (cd artifacts/et-touch-t3/source-patch && sha256sum -c source-sha256.txt)
+      - name: Preserve all screenshots, reports and failed-step evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: et-visual-02-touch-t3-evidence
+          path: artifacts/et-touch-t3/
+          retention-days: 14
+          if-no-files-found: warn

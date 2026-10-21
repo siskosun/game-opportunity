@@ -1,0 +1,38 @@
+{
+  "schema_version": "et-visual-selected-baseline-v1",
+  "baseline_id": "ET-VISUAL-02/candidate-02-r2",
+  "previous_baseline_id": "ET-VISUAL-01/candidate-02-r1",
+  "user_verdict": "r2更好",
+  "user_visual_preference_selected": true,
+  "decision_date": "2026-10-21",
+  "lifecycle_boundary": {
+    "art_production_approved": false,
+    "game_exp_review_pass": false,
+    "game_exp_selected": false,
+    "echo_tide_main_modified": false,
+    "cross_agent_ab_proven": false
+  },
+  "source": {
+    "echo_tide_commit": "38b9daa1adf78002c8ec5349c269a4ce31959d8f",
+    "game_opportunity_trial_commit": "59559cc1d173ae03c69fd59700fb8037be75a598",
+    "browser_ci_run": "39556854606",
+    "original_review_zip_sha256": "79bbfb85f5949980059ff300c93eb24c0f4674bb0319c392310dd235f555a5be"
+  },
+  "verified_build_files": {
+    "playable-r2/index.html": "d7eb284f748f6ff258ba17d7cc02f2e465dc4a5f35603d9c454cd3aeac080136",
+    "playable-r2/assets/index-BIiMG_uM.js": "6e00ce0e34fe5202a90540a29731cc435df42bad72b8bea7319c01cdf9d84de3"
+  },
+  "file_sha256": {
+    "DECISION.md": "c93074e39272bed1072b135e11a9ee5d0b3511b336dcee3b4fe1990ade4a5617",
+    "NEXT_PLAYTEST.md": "fc306c651a381b9d0adae73a91493590edef6dc7d65534b8e1a0cca5986f35fe",
+    "R2_original_review_evidence.zip": "79bbfb85f5949980059ff300c93eb24c0f4674bb0319c392310dd235f555a5be",
+    "README.md": "78887c565393183f5f486f92f7d418652e771f03dda8cdba17ad94a35eadc393",
+    "after/landscape844.png": "ad0a0677478c5e3fa6a8ebec90263f41621b6c5b06188c3cbde782c2eab7b74e",
+    "after/portrait360.png": "d969c4ad5beb13c69bcb37c1fb9c4a7899c8cce4370e8afc294fdd756ebd643b",
+    "after/portrait390.png": "70e2294ad301c15f1a78e245b996c0451f993afd7ae08f05b15c2061605b769b",
+    "playable-r2/assets/index-BIiMG_uM.js": "6e00ce0e34fe5202a90540a29731cc435df42bad72b8bea7319c01cdf9d84de3",
+    "playable-r2/index.html": "d7eb284f748f6ff258ba17d7cc02f2e465dc4a5f35603d9c454cd3aeac080136",
+    "scenes/rail-inflight.png": "4d06d72440965f4631e49b9902b095e33497d8fbd2fc9294a5dc548cc54924c3",
+    "scenes/rail-preview.png": "d4dc8d2ccd01cb085b715532d575e91feb34719f7e0236872870b9cadaf2946a"
+  }
+}
