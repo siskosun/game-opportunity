@@ -22,3 +22,13 @@
 下一轮以 R2 开始检查**手机触摸操控**：目前原游戏没有屏幕方向/跳跃键；Chrome CSS 视口布局通过不等于真实 iOS/Android 可玩性通过。还需要真机、动态轨道与警示状态的人审、长期稳定性，以及真正独立 Agent A/B 的返工与成本数据。后续不得拿本次视觉偏好声称 Art Director 降低了返工。
 
 **状态修订说明**：旧目录和旧版报告写的“R2 待审”均为历史记录，本文件覆盖其当前状态。未经用户再次认可，不得用下一个新候选替换 R2。
+
+## 2026-10-21 增量：ET-VISUAL-02 触控 T1 候选已工程验证，等待人工复评
+
+- **唯一现行已选视觉基线仍为 `ET-VISUAL-02/candidate-02-r2`，不变。** T1 是基于 R2 的新增触控实验候选，尚未获得用户审美/手感评价，不得写成 SELECTED 或 game-exp PASS。
+- P0-C 后续试点引入左右方向、跳跃、空中冲刺、锚定五个触摸按钮；竖屏安排在画布下方，844×390 横屏安排在游戏画布两侧；最小点击区域不低于 44 CSS px，允许双指操作。`src/game.js`、`src/render.js`、关卡、物理和游戏规则没有修改。
+- 依照冻结 Echo Tide SHA `38b9daa1` 构建的 02-R2 HTML/JS 与先前用户选定包**字节 SHA-256 一致**后才叠加 T1。T1 Chrome 155 [CI #39573056148](https://github.com/siskosun/game-opportunity/actions/runs/39573056148) 通过，Linux/Windows [常规 CI #39573062331](https://github.com/siskosun/game-opportunity/actions/runs/39573062331) 通过；原 69 项游戏测试、新增 7 项触控逻辑测试和 R2 语义检查通过。
+- 三个 Chrome 模拟移动视口（360×800 / 390×844 / 844×390）用真实浏览器触摸事件验证了移动、双指方向+跳跃、空中冲刺、触控释放、手势取消、失焦恢复和切换关卡；桌面 1280×900 保持键盘。四种视口均无横向溢出、首屏画布裁切、资源加载或脚本报错。**Chrome 模拟触摸不等于真机验证**。
+- 测试对应的 T1 可运行 `dist/index.html` SHA 为 `317e8c4fab79f6f51a1a1872faa22a833a1d0c5024ae607ce56e0b86f98e011c`，JS SHA 为 `ccd61ae72d9e0fa0205d77cccf6761323ed8a18a9f75a477c446446ab0e79e19`；评审 ZIP 的 SHA-256 为 `9ae82a79365bbc6342135e02f20f31200f24453fdf470b3d49dd37be7bff28b3`，离线 20 文件校验通过。
+- 资料空间：`/游戏开发方案/ET-VISUAL-01-草案/ET-VISUAL-02-触控T1-待评审/`；代码在 `siskosun/game-opportunity` Draft PR #13 的 `touch_t1/`。原 R2 归档与 pointer 不变，Echo Tide 主线及受保护的 game-exp Ledger 未修改。
+- **下一道用户门槛：** 复评 T1 的竖屏/横屏按钮位置、触控手感；随后使用 Android/iOS 实机以及真实完整关卡试玩，禁止用 CI 代替玩家验收。未经人审不合并。
