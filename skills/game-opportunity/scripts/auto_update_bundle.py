@@ -167,10 +167,17 @@ def execute(home,harness,apply=False):
             after=versions(home,harness)
             if any(not after[n] or ver(after[n])!=ver(latest[n]) for n in NAMES):
                 raise ValueError("POSTINSTALL_MISMATCH")
-        except Exception:
-            try:snapshot.restore()
-            except ValueError as err:raise ValueError("ROLLBACK_INCOMPLETE") from err
-            raise
+        except Exception as failure:
+            try:
+                snapshot.restore()
+            except (ValueError, OSError) as err:
+                raise ValueError("ROLLBACK_INCOMPLETE") from err
+            reason = str(failure)
+            safe_reasons = {"INSTALLER_EXECUTION_FAILED", "INSTALLER_OUTPUT_INVALID",
+                            "INSTALLER_FAILED", "POSTINSTALL_MISMATCH"}
+            if reason not in safe_reasons:
+                reason = "INSTALL_FAILED"
+            raise ValueError("ROLLED_BACK_" + reason) from failure
         finally:
             snapshot.close()
     return {"status":"UPDATED","latest":latest,"installed":after,"writes":True,
@@ -182,8 +189,18 @@ def main():
     p.add_argument("--apply",action="store_true")
     p.add_argument("--json",action="store_true")
     a=p.parse_args()
-    try:result=execute(a.home.expanduser().resolve(),a.harness,a.apply)
-    except Exception as exc:result={"status":"UNVERIFIED","reason":type(exc).__name__,"writes":False}
+    try:
+        result=execute(a.home.expanduser().resolve(),a.harness,a.apply)
+    except Exception as exc:
+        reason=str(exc) if isinstance(exc,ValueError) else type(exc).__name__
+        if reason=="ROLLBACK_INCOMPLETE":
+            result={"status":"ROLLBACK_INCOMPLETE","reason":"MANUAL_RECOVERY_REQUIRED",
+                    "writes":None}
+        elif reason.startswith("ROLLED_BACK_"):
+            result={"status":"ROLLED_BACK","reason":reason,"writes":False}
+        else:
+            # No managed installation was begun, or a validation failed before writes.
+            result={"status":"UNVERIFIED","reason":type(exc).__name__,"writes":False}
     print(json.dumps(result,ensure_ascii=False,indent=2) if a.json else result["status"])
     return 0 if result["status"] in ("UPDATED","UPDATE_AVAILABLE","CURRENT") else 2
 if __name__=="__main__":raise SystemExit(main())
