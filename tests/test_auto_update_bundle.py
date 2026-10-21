@@ -73,10 +73,18 @@ class UpdaterTests(unittest.TestCase):
             self.assertFalse(value["writes"])
 
     def test_all_current_does_not_install(self):
-        with tempfile.TemporaryDirectory() as d, mock.patch.object(updater, "releases", return_value=releases()), mock.patch.object(updater, "download", side_effect=AssertionError("should not download")):
+        with tempfile.TemporaryDirectory() as d, mock.patch.object(updater, "releases", return_value=releases()), mock.patch.object(updater, "download", side_effect=AssertionError("should not download")), mock.patch.object(updater, "verified_current", return_value=True):
             home = pathlib.Path(d)
             installed(home)
             self.assertEqual(updater.execute(home, "codex", True)["status"], "CURRENT")
+
+    def test_same_version_without_verified_bytes_is_not_current(self):
+        with tempfile.TemporaryDirectory() as d, mock.patch.object(updater, "releases", return_value=releases()):
+            home=pathlib.Path(d)
+            installed(home)
+            result=updater.execute(home,"codex",True)
+            self.assertEqual(result["status"],"UNVERIFIED")
+            self.assertFalse(result["writes"])
 
     def test_never_downgrade(self):
         with tempfile.TemporaryDirectory() as d, mock.patch.object(updater, "releases", return_value=releases()):
